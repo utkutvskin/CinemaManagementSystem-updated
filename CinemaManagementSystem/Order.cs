@@ -8,24 +8,51 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Order
     {
-        // ---------- Attributes ----------
-        public string CardInfo { get; set; }
-        public DateTime DateOfPurchase { get; set; }
+        // ---------- Backing fields ----------
+        private string _cardInfo;
+        private DateTime _dateOfPurchase;
+
+        // ---------- Properties with validation (preserve original public names) ----------
+        public string CardInfo
+        {
+            get => _cardInfo;
+            set
+            {
+                var trimmed = value?.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed))
+                    throw new ArgumentException("Card information cannot be empty.");
+                _cardInfo = trimmed;
+            }
+        }
+
+        public DateTime DateOfPurchase
+        {
+            get => _dateOfPurchase;
+            set
+            {
+                if (value > DateTime.Now)
+                    throw new ArgumentException("Date of purchase cannot be in the future.");
+                _dateOfPurchase = value;
+            }
+        }
 
         // ---------- Class extent ----------
         private static List<Order> _orders = new List<Order>();
         public static IReadOnlyList<Order> Orders => _orders.AsReadOnly();
 
+        // Backwards-compatible clear methods
+        public static void ClearAllOrders() => _orders.Clear();
+        public static void ClearExtent() => ClearAllOrders();
+
         // ---------- Constructors ----------
-        public Order() { } // XML için zorunlu
+        public Order() { } // XML serializer için gerekli
 
         public Order(string cardInfo)
         {
-            if (string.IsNullOrWhiteSpace(cardInfo))
-                throw new ArgumentException("Card information cannot be empty.");
-
+            // Use property setter for validation/normalization
             CardInfo = cardInfo;
             DateOfPurchase = DateTime.Now;
+
             _orders.Add(this);
         }
 
@@ -35,18 +62,19 @@ namespace CinemaManagementSystem
             return $"Order made on {DateOfPurchase:dd/MM/yyyy HH:mm}, Card Info: {CardInfo}";
         }
 
-        public static void ClearExtent()
-        {
-            _orders.Clear();
-        }
-
         // ---------- Persistence ----------
         public static void Save(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Order>));
+            var serializer = new XmlSerializer(typeof(List<Order>));
+
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
             using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 serializer.Serialize(fs, _orders);
+                fs.Flush();
             }
         }
 
@@ -55,10 +83,11 @@ namespace CinemaManagementSystem
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("Order file not found.");
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Order>));
+            var serializer = new XmlSerializer(typeof(List<Order>));
             using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                _orders = (List<Order>)serializer.Deserialize(fs);
+                var loaded = (List<Order>)serializer.Deserialize(fs);
+                _orders = loaded ?? new List<Order>();
             }
         }
     }
