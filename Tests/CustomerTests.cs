@@ -8,103 +8,98 @@ namespace CinemaManagementSystem.Tests
     [TestFixture]
     public class CustomerTests
     {
-        private string filePath = "customers_test.xml";
-
         [SetUp]
         public void SetUp()
         {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
-
             Customer.ClearAllCustomers();
         }
 
         [TearDown]
-        public void Cleanup()
+        public void TearDown()
         {
-            if (File.Exists(filePath))
-            {
-                try { File.Delete(filePath); }
-                catch { /* ignore */ }
-            }
-
             Customer.ClearAllCustomers();
         }
 
         [Test]
-        public void Constructor_ValidData_ShouldCreateCustomer()
+        public void Name_SetEmpty_ThrowsArgumentException()
         {
-            var customer = new Customer("Alice", "Smith", "Female", new DateTime(1995, 3, 15));
-
-            Assert.AreEqual("Alice", customer.Name);
-            Assert.AreEqual("Smith", customer.Surname);
-            Assert.AreEqual("Female", customer.Gender);
-            Assert.AreEqual(1995, customer.BirthDate.Year);
+            var customer = new Customer();
+            Assert.Throws<ArgumentException>(() => customer.Name = "");
+            Assert.Throws<ArgumentException>(() => customer.Name = "   ");
         }
 
         [Test]
-        public void Constructor_EmptyName_ShouldThrowException()
+        public void Surname_SetEmpty_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentException>(() =>
-                new Customer("", "Smith", "Female", new DateTime(1995, 3, 15))
-            );
+            var customer = new Customer();
+            Assert.Throws<ArgumentException>(() => customer.Surname = "");
+            Assert.Throws<ArgumentException>(() => customer.Surname = "   ");
         }
 
         [Test]
-        public void Constructor_EmptySurname_ShouldThrowException()
+        public void Gender_SetEmpty_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentException>(() =>
-                new Customer("Alice", "", "Female", new DateTime(1995, 3, 15))
-            );
+            var customer = new Customer();
+            Assert.Throws<ArgumentException>(() => customer.Gender = "");
+            Assert.Throws<ArgumentException>(() => customer.Gender = "   ");
         }
 
         [Test]
-        public void Constructor_FutureBirthDate_ShouldThrowException()
+        public void BirthDate_InFuture_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentException>(() =>
-                new Customer("Alice", "Smith", "Female", DateTime.Now.AddYears(1))
-            );
+            var customer = new Customer();
+            Assert.Throws<ArgumentException>(() => customer.BirthDate = DateTime.Now.AddDays(1));
         }
 
         [Test]
-        public void Age_ShouldCalculateCorrectly()
+        public void Age_Computed_From_BirthDate_Correctly()
         {
-            var birthDate = new DateTime(2000, 6, 15);
-            var customer = new Customer("Bob", "Jones", "Male", birthDate);
+            // Use a fixed birth date to keep test stable
+            var birth = new DateTime(1992, 4, 10);
+            var customer = new Customer("John", "Doe", "M", birth);
 
-            int expectedAge = DateTime.Now.Year - 2000;
-            if (DateTime.Now.DayOfYear < birthDate.DayOfYear)
-                expectedAge--;
+            var today = DateTime.Today;
+            int expectedAge = today.Year - birth.Year;
+            if (birth > today.AddYears(-expectedAge)) expectedAge--;
 
             Assert.AreEqual(expectedAge, customer.Age);
         }
 
         [Test]
-        public void ToString_ShouldReturnFormattedString()
+        public void SaveAndLoad_PreservesFields_And_Age_Computed_After_Load()
         {
-            var customer = new Customer("Alice", "Smith", "Female", new DateTime(1995, 3, 15));
-            string text = customer.ToString();
+            var birth = new DateTime(1985, 11, 5);
+            var customer = new Customer("Alice", "Brown", "F", birth);
 
-            StringAssert.Contains("Alice Smith", text);
-            StringAssert.Contains("Female", text);
-        }
+            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".xml");
+            try
+            {
+                Customer.Save(tempFile);
 
-        [Test]
-        public void SaveAndLoad_ShouldPersistCustomers()
-        {
-            new Customer("Alice", "Smith", "Female", new DateTime(1995, 3, 15));
-            new Customer("Bob", "Jones", "Male", new DateTime(1988, 7, 20));
+                // Clear memory and load from file
+                Customer.ClearAllCustomers();
+                Assert.IsEmpty(Customer.Customers);
 
-            Customer.Save(filePath);
-            Assert.That(File.Exists(filePath), "File should be created");
+                Customer.Load(tempFile);
 
-            Customer.ClearAllCustomers();
+                Assert.AreEqual(1, Customer.Customers.Count);
+                var loaded = Customer.Customers[0];
 
-            Customer.Load(filePath);
+                Assert.AreEqual("Alice", loaded.Name);
+                Assert.AreEqual("Brown", loaded.Surname);
+                Assert.AreEqual("F", loaded.Gender);
+                Assert.AreEqual(birth, loaded.BirthDate);
 
-            Assert.That(Customer.Customers.Count, Is.EqualTo(2), "Should load 2 customers");
-            Assert.That(Customer.Customers[0].Name, Is.EqualTo("Alice"), "First customer name should be 'Alice'");
-            Assert.That(Customer.Customers[1].Name, Is.EqualTo("Bob"), "Second customer name should be 'Bob'");
+                // Age must be computed from BirthDate (not read from file)
+                var today = DateTime.Today;
+                int expectedAge = today.Year - birth.Year;
+                if (birth > today.AddYears(-expectedAge)) expectedAge--;
+                Assert.AreEqual(expectedAge, loaded.Age);
+            }
+            finally
+            {
+                if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
         }
     }
 }
