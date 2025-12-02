@@ -8,10 +8,43 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Stampcard
     {
-        // ---------- Attributes ----------
-        public DateTime DateOfPurchase { get; set; } // public set; XML için gerekli
-        public bool IsCompleted { get; set; }
-        public int NumberOfStamps { get; set; }
+        // ---------- Backing fields ----------
+        private DateTime _dateOfPurchase;
+        private bool _isCompleted;
+        private int _numberOfStamps;
+
+        // ---------- Attributes (preserve original public names) ----------
+        public DateTime DateOfPurchase
+        {
+            get => _dateOfPurchase;
+            set
+            {
+                if (value > DateTime.Now)
+                    throw new ArgumentException("Date of purchase cannot be in the future.");
+                _dateOfPurchase = value;
+            }
+        }
+
+        public bool IsCompleted
+        {
+            get => _isCompleted;
+            set => _isCompleted = value;
+        }
+
+        public int NumberOfStamps
+        {
+            get => _numberOfStamps;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentException("Number of stamps cannot be negative.");
+                if (value > MaxStamps)
+                    throw new ArgumentException($"Number of stamps cannot exceed {MaxStamps}.");
+                _numberOfStamps = value;
+                if (_numberOfStamps >= MaxStamps)
+                    _isCompleted = true;
+            }
+        }
 
         // ---------- Class extent ----------
         private static List<Stampcard> _stampcards = new List<Stampcard>();
@@ -19,6 +52,10 @@ namespace CinemaManagementSystem
 
         // ---------- Constants ----------
         private const int MaxStamps = 10;
+
+        // Backwards-compatible clear methods
+        public static void ClearAllStampcards() => _stampcards.Clear();
+        public static void ClearExtent() => ClearAllStampcards();
 
         // ---------- Constructors ----------
         public Stampcard()
@@ -35,15 +72,10 @@ namespace CinemaManagementSystem
             if (IsCompleted)
                 throw new InvalidOperationException("This stamp card is already completed.");
 
-            NumberOfStamps++;
-
-            if (NumberOfStamps >= MaxStamps)
-                IsCompleted = true;
+            NumberOfStamps++; // uses setter to update IsCompleted when needed
         }
 
         public int CheckNumberOfStamps() => NumberOfStamps;
-
-        public static void ClearExtent() => _stampcards.Clear();
 
         public override string ToString()
         {
@@ -53,10 +85,16 @@ namespace CinemaManagementSystem
         // ---------- Persistence ----------
         public static void Save(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Stampcard>));
+            var serializer = new XmlSerializer(typeof(List<Stampcard>));
+
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
             using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 serializer.Serialize(fs, _stampcards);
+                fs.Flush();
             }
         }
 
@@ -65,10 +103,11 @@ namespace CinemaManagementSystem
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("Stampcard file not found.");
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Stampcard>));
+            var serializer = new XmlSerializer(typeof(List<Stampcard>));
             using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                _stampcards = (List<Stampcard>)serializer.Deserialize(fs);
+                var loaded = (List<Stampcard>)serializer.Deserialize(fs);
+                _stampcards = loaded ?? new List<Stampcard>();
             }
         }
     }
