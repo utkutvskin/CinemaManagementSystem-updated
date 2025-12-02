@@ -9,24 +9,29 @@ namespace CinemaManagementSystem.Tests
     [TestFixture]
     public class MovieTests
     {
-        private string filePath;
+        private string _filePath;
 
         [SetUp]
         public void Setup()
         {
-           
-            filePath = Path.Combine(Path.GetTempPath(), $"movies_test_{Guid.NewGuid()}.xml");
+            // Her test için benzersiz temp dosyası
+            _filePath = Path.Combine(Path.GetTempPath(), $"movies_test_{Guid.NewGuid()}.xml");
 
-            Movie.ClearExtent();
+            // Temiz statik durum
+            Movie.ClearAllMovies();
         }
 
         [TearDown]
         public void Cleanup()
         {
-            if (File.Exists(filePath))
+            try
             {
-                try { File.Delete(filePath); } catch { /* ignore */ }
+                if (File.Exists(_filePath))
+                    File.Delete(_filePath);
             }
+            catch { /* ignore cleanup errors */ }
+
+            Movie.ClearAllMovies();
         }
 
         [Test]
@@ -42,6 +47,10 @@ namespace CinemaManagementSystem.Tests
             Assert.That(movie.Duration, Is.EqualTo(148));
             Assert.That(movie.ScreeningType, Is.EqualTo("IMAX"));
             Assert.That(movie.AgeInYears, Is.GreaterThan(10));
+
+            // constructor adds to static list
+            Assert.That(Movie.Movies.Count, Is.EqualTo(1));
+            Assert.That(Movie.Movies[0], Is.EqualTo(movie));
         }
 
         [Test]
@@ -100,6 +109,8 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void SaveAndLoad_ShouldPersistMovies()
         {
+            Movie.ClearAllMovies();
+
             var directors1 = new List<string> { "James Cameron" };
             var genres1 = new List<string> { "Adventure", "Sci-Fi" };
             var m1 = new Movie("Avatar", directors1, genres1, "3D", 162, new DateTime(2009, 12, 18));
@@ -108,9 +119,13 @@ namespace CinemaManagementSystem.Tests
             var genres2 = new List<string> { "Romance", "Drama" };
             var m2 = new Movie("Titanic", directors2, genres2, "2D", 195, new DateTime(1997, 12, 19));
 
-            Movie.Save(filePath);
-            Movie.ClearExtent();
-            Movie.Load(filePath);
+            Movie.Save(_filePath);
+
+            // Clear in-memory list to ensure Load restores data
+            Movie.ClearAllMovies();
+            Assert.That(Movie.Movies.Count, Is.EqualTo(0));
+
+            Movie.Load(_filePath);
 
             Assert.That(Movie.Movies.Count, Is.EqualTo(2));
             Assert.That(Movie.Movies[0].Title, Is.EqualTo("Avatar"));
