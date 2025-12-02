@@ -8,30 +8,48 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Hall
     {
-        // ---------- Attributes ----------
-        public int Number { get; set; }
+        // ---------- Backing fields ----------
+        private int _number;
 
-        [XmlIgnore]
+        // ---------- Attributes (preserve original public names) ----------
+        public int Number
+        {
+            get => _number;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Hall number must be positive.");
+
+                // ensure uniqueness among existing halls
+                foreach (var hall in _halls)
+                {
+                    if (!ReferenceEquals(hall, this) && hall.Number == value)
+                        throw new ArgumentException($"Hall with number {value} already exists.");
+                }
+
+                _number = value;
+            }
+        }
+
+        
         public static readonly int MaxCapacity = 100;
 
         // ---------- Class extent ----------
         private static List<Hall> _halls = new List<Hall>();
         public static IReadOnlyList<Hall> Halls => _halls.AsReadOnly();
 
+        // Backwards-compatible clear method names (tests expect ClearAllHalls in other files)
+        public static void ClearAllHalls() => _halls.Clear();
+
+        // Keep original ClearExtent name as an alias for compatibility
+        public static void ClearExtent() => ClearAllHalls();
+
         // ---------- Constructors ----------
         public Hall() { } // XML serialization için gerekli
 
         public Hall(int number)
         {
-            if (number <= 0)
-                throw new ArgumentException("Hall number must be positive.");
-
-            foreach (var hall in _halls)
-            {
-                if (hall.Number == number)
-                    throw new ArgumentException($"Hall with number {number} already exists.");
-            }
-
+            // Use property setter so validation/uniqueness is applied
             Number = number;
             _halls.Add(this);
         }
@@ -42,20 +60,20 @@ namespace CinemaManagementSystem
             return $"Hall {Number} (Max Capacity: {MaxCapacity})";
         }
 
-        public static void ClearExtent()
-        {
-            _halls.Clear();
-        }
-
         // ---------- Persistence ----------
         public static void Save(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Hall>));
+            var serializer = new XmlSerializer(typeof(List<Hall>));
+
+            // Ensure directory exists
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
 
             using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 serializer.Serialize(fs, _halls);
-                fs.Flush();
+                fs.Flush(); // ensure file fully written
             }
         }
 
@@ -64,13 +82,12 @@ namespace CinemaManagementSystem
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("Hall file not found.");
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Hall>));
+            var serializer = new XmlSerializer(typeof(List<Hall>));
 
             using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 var loaded = (List<Hall>)serializer.Deserialize(fs);
-                _halls.Clear();
-                _halls.AddRange(loaded);
+                _halls = loaded ?? new List<Hall>();
             }
         }
     }
