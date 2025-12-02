@@ -3,45 +3,133 @@ using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using CinemaManagementSystem;
+using CinemaManagementSystem.Enums;
 
 namespace CinemaManagementSystem.Tests
 {
     [TestFixture]
     public class MovieTests
     {
-        private string filePath;
+        private string filePath ="movies_test.xml";
 
         [SetUp]
         public void Setup()
         {
            
-            filePath = Path.Combine(Path.GetTempPath(), $"movies_test_{Guid.NewGuid()}.xml");
-
             Movie.ClearExtent();
         }
 
-        [TearDown]
-        public void Cleanup()
+        [Test]
+        public void TitleSetterValidation_ShouldThrowException()
         {
-            if (File.Exists(filePath))
-            {
-                try { File.Delete(filePath); } catch { /* ignore */ }
-            }
+            var directors = new List<string> { "Christopher Nolan" };
+            var genres = new List<string> { "Sci-Fi", "Thriller" };
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
+
+            Assert.Throws<ArgumentException>(() =>
+                movie.Title = " "
+            );
         }
 
+        [Test]
+        public void TitleSetterValidation_ShouldSetTitleSuccessfully()
+        {
+            var directors = new List<string> { "Christopher Nolan" };
+            var genres = new List<string> { "Sci-Fi", "Thriller" };
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
+
+            movie.Title = "Title";
+
+            Assert.That(movie.Title, Is.EqualTo("Title"));
+        }
+        
+        public void DirectorsSetterValidation_ShouldThrowException()
+        {
+            var directors = new List<string> { "Christopher Nolan" };
+            var genres = new List<string> { "Sci-Fi", "Thriller" };
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
+
+            Assert.Throws<ArgumentException>(() =>
+                movie.Directors = null
+            );
+        }
+
+        [Test]
+        public void DirectorsSetterValidation_ShouldSetDirectorsSuccessfully()
+        {
+            var directors = new List<string> { "Christopher Nolan" };
+            var genres = new List<string> { "Sci-Fi", "Thriller" };
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
+            var d = new List<string> { "Director" };
+            
+            movie.Directors = d;
+
+            Assert.That(movie.Directors, Is.EqualTo(d));
+        }
+
+        [Test]
+        public void GenresSetterValidation_ShouldThrowException()
+        {
+            var directors = new List<string> { "Christopher Nolan" };
+            var genres = new List<string> { "Sci-Fi", "Thriller" };
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
+
+            Assert.Throws<ArgumentException>(() =>
+                movie.Genres = null
+            );
+        }
+
+        [Test]
+        public void GenresSetterValidation_ShouldSetGenresSuccessfully()
+        {
+            var directors = new List<string> { "Christopher Nolan" };
+            var genres = new List<string> { "Sci-Fi", "Thriller" };
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
+            
+            var gen = new List<string> { "Sci-Fi", "Action" };
+
+            movie.Genres = gen;
+
+            Assert.That(movie.Genres, Is.EqualTo(gen));
+        }
+        
+        [Test]
+        public void DurationSetterValidation_ShouldThrowException()
+        {
+            var directors = new List<string> { "Christopher Nolan" };
+            var genres = new List<string> { "Sci-Fi", "Thriller" };
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
+
+            Assert.Throws<ArgumentException>(() =>
+                movie.Duration = 0
+            );
+
+        }
+
+        [Test]
+        public void DurationSetterValidation_ShouldSetDurationSuccessfully()
+        {
+            var directors = new List<string> { "Christopher Nolan" };
+            var genres = new List<string> { "Sci-Fi", "Thriller" };
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
+
+            movie.Duration = 150;
+
+            Assert.That(movie.Duration, Is.EqualTo(150));
+        }
+        
         [Test]
         public void Constructor_ValidData_ShouldCreateMovie()
         {
             var directors = new List<string> { "Christopher Nolan" };
             var genres = new List<string> { "Sci-Fi", "Thriller" };
-            var movie = new Movie("Inception", directors, genres, "IMAX", 148, new DateTime(2010, 7, 16));
+            var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148);
 
             Assert.That(movie.Title, Is.EqualTo("Inception"));
             Assert.That(movie.Directors.Count, Is.EqualTo(1));
             Assert.That(movie.Genres.Count, Is.EqualTo(2));
             Assert.That(movie.Duration, Is.EqualTo(148));
-            Assert.That(movie.ScreeningType, Is.EqualTo("IMAX"));
-            Assert.That(movie.AgeInYears, Is.GreaterThan(10));
+            Assert.That(movie.ScreeningType, Is.EqualTo(ScreeningEnum.IMAX));
         }
 
         [Test]
@@ -50,7 +138,7 @@ namespace CinemaManagementSystem.Tests
             var directors = new List<string> { "Unknown" };
             var genres = new List<string> { "Drama" };
             Assert.Throws<ArgumentException>(() =>
-                new Movie("", directors, genres, "2D", 120, DateTime.Now.AddYears(-1))
+                new Movie("", directors, genres, ScreeningEnum.TwoD, 120)
             );
         }
 
@@ -59,17 +147,7 @@ namespace CinemaManagementSystem.Tests
         {
             var genres = new List<string> { "Drama" };
             Assert.Throws<ArgumentException>(() =>
-                new Movie("No Director", new List<string>(), genres, "2D", 120, DateTime.Now.AddYears(-1))
-            );
-        }
-
-        [Test]
-        public void Constructor_FutureReleaseDate_ShouldThrowException()
-        {
-            var directors = new List<string> { "Future Man" };
-            var genres = new List<string> { "Action" };
-            Assert.Throws<ArgumentException>(() =>
-                new Movie("Future Film", directors, genres, "3D", 100, DateTime.Now.AddMonths(6))
+                new Movie("No Director", null, genres, ScreeningEnum.TwoD, 120)
             );
         }
 
@@ -79,7 +157,7 @@ namespace CinemaManagementSystem.Tests
             var directors = new List<string> { "James Cameron" };
             var genres = new List<string> { "Adventure" };
             Assert.Throws<ArgumentException>(() =>
-                new Movie("Invalid", directors, genres, "2D", -120, new DateTime(2010, 1, 1))
+                new Movie("Invalid", directors, genres, ScreeningEnum.TwoD, -120)
             );
         }
 
@@ -88,7 +166,7 @@ namespace CinemaManagementSystem.Tests
         {
             var directors = new List<string> { "Lana Wachowski", "Lilly Wachowski" };
             var genres = new List<string> { "Sci-Fi", "Action" };
-            var movie = new Movie("Matrix", directors, genres, "2D", 136, new DateTime(1999, 3, 31));
+            var movie = new Movie("Matrix", directors, genres, ScreeningEnum.TwoD, 136);
 
             string result = movie.ToString();
 
@@ -100,13 +178,16 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void SaveAndLoad_ShouldPersistMovies()
         {
+            if (File.Exists(filePath))
+                File.Delete(filePath); 
+            
             var directors1 = new List<string> { "James Cameron" };
             var genres1 = new List<string> { "Adventure", "Sci-Fi" };
-            var m1 = new Movie("Avatar", directors1, genres1, "3D", 162, new DateTime(2009, 12, 18));
+            var m1 = new Movie("Avatar", directors1, genres1, ScreeningEnum.ThreeD, 162);
 
             var directors2 = new List<string> { "James Cameron" };
             var genres2 = new List<string> { "Romance", "Drama" };
-            var m2 = new Movie("Titanic", directors2, genres2, "2D", 195, new DateTime(1997, 12, 19));
+            var m2 = new Movie("Titanic", directors2, genres2, ScreeningEnum.TwoD, 195);
 
             Movie.Save(filePath);
             Movie.ClearExtent();

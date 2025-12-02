@@ -13,32 +13,76 @@ namespace CinemaManagementSystem.Tests
         [SetUp]
         public void SetUp()
         {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
-
+            
             Actor.ClearAllActors();
         }
 
-        [TearDown]
-        public void Cleanup()
+        //Test Name/Surname setter 
+        [Test]
+        public void NameSetterValidation_ShouldThrowException()
         {
-            if (File.Exists(filePath))
-            {
-                try { File.Delete(filePath); }
-                catch { /* ignore */ }
-            }
+            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            Assert.Throws<ArgumentException>(() =>
+                actor.Name = " "
+            );
+        }
+        [Test]
+        public void SurnameSetterValidation_ShouldSetSurnameSuccessfully()
+        {
+            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            actor.Surname = "Smith";
+            Assert.That(actor.Surname, Is.EqualTo("Smith"));
+        }
+        
+        //Test Gender setter
+        [Test]
+        public void GenderSetterValidation_ShouldThrowException()
+        {
+            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            Assert.Throws<ArgumentException>(() =>
+                actor.Gender = "Dog"
+            );
 
-            Actor.ClearAllActors();
+        }
+        
+        [Test]
+        public void GenderSetterValidation_ShouldSetGenderSuccessfully()
+        {
+            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            actor.Gender = "Other";
+            
+            Assert.That(actor.Gender, Is.EqualTo("Other"));
+
+        }
+        
+        //Test BirthDay setter
+        [Test]
+        public void BirthDaySetterValidation_ShouldThrowException()
+        {
+            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            Assert.Throws<ArgumentException>(() =>
+                actor.BirthDate = new DateTime(2030, 3,4)
+            );
+
         }
 
         [Test]
+        public void BirthDateSetterValidation_ShouldSetBirthDateSuccessfully()
+        {
+            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            actor.BirthDate = new DateTime(2005, 3, 4);
+            Assert.That(actor.BirthDate, Is.EqualTo(new DateTime(2005, 3, 4)));
+        }
+
+        //Test Constructor
+        [Test]
         public void Constructor_ValidData_ShouldCreateActor()
         {
-            var actor = new Actor("John", "Doe", "Male", new DateTime(1990, 5, 10));
+            var actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
 
             Assert.AreEqual("John", actor.Name);
             Assert.AreEqual("Doe", actor.Surname);
-            Assert.AreEqual("Male", actor.Gender);
+            Assert.AreEqual("Men", actor.Gender);
             Assert.AreEqual(1990, actor.BirthDate.Year);
         }
 
@@ -46,7 +90,7 @@ namespace CinemaManagementSystem.Tests
         public void Constructor_EmptyName_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Actor("", "Doe", "Male", new DateTime(1990, 5, 10))
+                new Actor("", "Doe", "Men", new DateTime(1990, 5, 10))
             );
         }
 
@@ -54,15 +98,15 @@ namespace CinemaManagementSystem.Tests
         public void Constructor_EmptySurname_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Actor("John", "", "Male", new DateTime(1990, 5, 10))
+                new Actor("John", "", "Men", new DateTime(1990, 5, 10))
             );
         }
 
         [Test]
-        public void Constructor_FutureBirthDate_ShouldThrowException()
+        public void Constructor_IncorectBirthDate_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Actor("John", "Doe", "Male", DateTime.Now.AddYears(2))
+                new Actor("John", "Doe", "Men", DateTime.Now.AddYears(2))
             );
         }
 
@@ -82,16 +126,19 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void ToString_ShouldReturnFormattedString()
         {
-            var actor = new Actor("John", "Doe", "Male", new DateTime(1990, 5, 10));
+            var actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
             string text = actor.ToString();
             StringAssert.Contains("John Doe", text);
-            StringAssert.Contains("Male", text);
+            StringAssert.Contains("Men", text);
         }
 
         [Test]
         public void SaveAndLoad_ShouldPersistActors()
         {
-            new Actor("John", "Doe", "Male", new DateTime(1990, 5, 10));
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+            
+            new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
             new Actor("Jane", "Smith", "Female", new DateTime(1985, 3, 20));
 
             Actor.Save(filePath);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace CinemaManagementSystem
@@ -8,31 +9,60 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Order
     {
-        // ---------- Attributes ----------
-        public string CardInfo { get; set; }
-        public DateTime DateOfPurchase { get; set; }
+        //Attributes
+        private CardInfo _cardInfo;
+        private DateTime _dateOfPurchase;
+        
+        public CardInfo cardInfo
+        {
+            get => _cardInfo;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentException("CardInfo cannot be null.");
+                _cardInfo = value;
+            }
+        }
 
-        // ---------- Class extent ----------
+        public DateTime DateOfPurchase
+        {
+            get => _dateOfPurchase;
+            set
+            {
+                if (value > DateTime.Now)
+                    throw new ArgumentException("Date of purchase cannot be in the future.");
+                _dateOfPurchase = value;
+            }
+        }
+
+
+        //Class extent
         private static List<Order> _orders = new List<Order>();
         public static IReadOnlyList<Order> Orders => _orders.AsReadOnly();
 
-        // ---------- Constructors ----------
-        public Order() { } // XML için zorunlu
-
-        public Order(string cardInfo)
+        private void AddOrder(Order order)
         {
-            if (string.IsNullOrWhiteSpace(cardInfo))
-                throw new ArgumentException("Card information cannot be empty.");
+            if (order == null)
+                throw new ArgumentException("Actor cannot be null");
 
-            CardInfo = cardInfo;
-            DateOfPurchase = DateTime.Now;
-            _orders.Add(this);
+            _orders.Add(order);
         }
 
-        // ---------- Methods ----------
+        // Constructors
+        public Order() { } 
+
+        public Order(CardInfo cardInfo)
+        {
+
+            this.cardInfo = cardInfo;
+            DateOfPurchase = DateTime.Now;
+            AddOrder(this);
+        }
+
+        // Methods 
         public override string ToString()
         {
-            return $"Order made on {DateOfPurchase:dd/MM/yyyy HH:mm}, Card Info: {CardInfo}";
+            return $"Order made on {DateOfPurchase:dd/MM/yyyy HH:mm}, Card Info: {cardInfo}";
         }
 
         public static void ClearExtent()
@@ -40,26 +70,50 @@ namespace CinemaManagementSystem
             _orders.Clear();
         }
 
-        // ---------- Persistence ----------
+        // Persistence 
         public static void Save(string filePath)
         {
+            StreamWriter sw = new StreamWriter(filePath);
             XmlSerializer serializer = new XmlSerializer(typeof(List<Order>));
-            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (XmlTextWriter writer = new XmlTextWriter(sw))
             {
-                serializer.Serialize(fs, _orders);
+                serializer.Serialize(writer, _orders);
             }
         }
 
-        public static void Load(string filePath)
+        public static bool Load(string filePath)
         {
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException("Order file not found.");
+            StreamReader file;
+            try
+            {
+                file = File.OpenText(filePath);
+            }
+            catch (FileNotFoundException)
+            {
+                _orders.Clear();
+                return false;
+            }
 
             XmlSerializer serializer = new XmlSerializer(typeof(List<Order>));
-            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (XmlTextReader reader = new XmlTextReader(filePath))
             {
-                _orders = (List<Order>)serializer.Deserialize(fs);
+                try
+                {
+                    _orders = (List<Order>)serializer.Deserialize(reader);
+                }
+                catch (InvalidCastException)
+                {
+                    _orders.Clear();
+                    return false;
+                }
+                catch (Exception)
+                {
+                    _orders.Clear();
+                    return false;
+                }
             }
+
+            return true;
         }
     }
 }

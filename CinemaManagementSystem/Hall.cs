@@ -8,35 +8,46 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Hall
     {
-        // ---------- Attributes ----------
-        public int Number { get; set; }
+        //  Attributes 
+        private int _number;
+        
+        public int Number
+        {
+            get => _number;
+            set
+            {
+                if (value > MaxCapacity || value <= 0)
+                    throw new ArgumentException("Number can't be greater than max capacity or less than 0.");
+                _number = value;
+            }
+        }
 
         [XmlIgnore]
         public static readonly int MaxCapacity = 100;
 
-        // ---------- Class extent ----------
+        //  Class extent 
         private static List<Hall> _halls = new List<Hall>();
         public static IReadOnlyList<Hall> Halls => _halls.AsReadOnly();
+        
+        private static void AddHall(Hall hall)
+        {
+            if (hall == null)
+                throw new ArgumentException("hall cannot be null");
 
-        // ---------- Constructors ----------
-        public Hall() { } // XML serialization için gerekli
+            _halls.Add(hall);
+        }
+
+        //  Constructors 
+        public Hall() { } 
 
         public Hall(int number)
         {
-            if (number <= 0)
-                throw new ArgumentException("Hall number must be positive.");
-
-            foreach (var hall in _halls)
-            {
-                if (hall.Number == number)
-                    throw new ArgumentException($"Hall with number {number} already exists.");
-            }
 
             Number = number;
-            _halls.Add(this);
+            AddHall(this);
         }
 
-        // ---------- Methods ----------
+        //  Methods 
         public override string ToString()
         {
             return $"Hall {Number} (Max Capacity: {MaxCapacity})";
@@ -47,7 +58,7 @@ namespace CinemaManagementSystem
             _halls.Clear();
         }
 
-        // ---------- Persistence ----------
+        //  Persistence 
         public static void Save(string filePath)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(List<Hall>));

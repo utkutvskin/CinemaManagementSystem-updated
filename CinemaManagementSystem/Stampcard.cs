@@ -8,40 +8,67 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Stampcard
     {
-        // ---------- Attributes ----------
-        public DateTime DateOfPurchase { get; set; } // public set; XML için gerekli
-        public bool IsCompleted { get; set; }
-        public int NumberOfStamps { get; set; }
+        //  Attributes 
+        private DateTime _dateOfPurchase;
+        private int _numberOfStamps;
+        
+        public DateTime DateOfPurchase
+        {
+            get => _dateOfPurchase;
+            set
+            {
+                if (value > DateTime.Now)
+                    throw new ArgumentException("Date of purchase cannot be in the future.");
+                _dateOfPurchase = value;
+            }
+        } 
+        public int NumberOfStamps
+        {
+            get => _numberOfStamps;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentException("Number of stamps cannot be negative.");
+                if (value > MaxStamps)
+                    throw new ArgumentException($"Number of stamps cannot exceed {MaxStamps}.");
+                _numberOfStamps = value;
+            }
+        }
+        
+        [XmlIgnore]
+        public bool IsCompleted => NumberOfStamps >= MaxStamps;
 
-        // ---------- Class extent ----------
+        //  Class extent 
         private static List<Stampcard> _stampcards = new List<Stampcard>();
         public static IReadOnlyList<Stampcard> Stampcards => _stampcards.AsReadOnly();
 
-        // ---------- Constants ----------
-        private const int MaxStamps = 10;
+        private static void AddStampcard(Stampcard stampcard)
+        {
+            if (stampcard == null)
+                throw new ArgumentException("stampcard cannot be null");
 
-        // ---------- Constructors ----------
+            _stampcards.Add(stampcard);
+            
+        }
+        //  Constants 
+        private const int MaxStamps = 4;
+
+        //  Constructors 
         public Stampcard()
         {
             DateOfPurchase = DateTime.Now;
-            IsCompleted = false;
             NumberOfStamps = 0;
-            _stampcards.Add(this);
+            AddStampcard(this);
         }
 
-        // ---------- Methods ----------
+        //  Methods 
         public void AddStamp()
         {
             if (IsCompleted)
                 throw new InvalidOperationException("This stamp card is already completed.");
 
             NumberOfStamps++;
-
-            if (NumberOfStamps >= MaxStamps)
-                IsCompleted = true;
         }
-
-        public int CheckNumberOfStamps() => NumberOfStamps;
 
         public static void ClearExtent() => _stampcards.Clear();
 
@@ -50,7 +77,7 @@ namespace CinemaManagementSystem
             return $"Stampcard - Purchased: {DateOfPurchase:dd/MM/yyyy}, Stamps: {NumberOfStamps}, Completed: {IsCompleted}";
         }
 
-        // ---------- Persistence ----------
+        //  Persistence 
         public static void Save(string filePath)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(List<Stampcard>));

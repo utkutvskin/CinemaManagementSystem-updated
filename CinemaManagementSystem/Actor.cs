@@ -2,18 +2,67 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
+using System.Xml;
+using CinemaManagementSystem.Enums;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
     public class Actor
     {
-        // ---------- Attributes ----------
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Gender { get; set; }
-        public DateTime BirthDate { get; set; }
+        //Attributes
+        private string _name;
+        private string _surname;
+        private GenderEnum _gender;
+        private DateTime _birthDate;
+        
+        
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Name cannot be empty.");
+                _name = value;
+            }
+        }
+        
+        public string Surname
+        {
+            get => _surname;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Surname cannot be empty.");
+                _surname = value;
+            }
+        }
 
+        public string Gender
+        {
+            get => _gender.ToString();
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value) || !Enum.IsDefined(typeof(GenderEnum), value))
+                    throw new ArgumentException("Gender not correct");
+                
+                _gender = Enum.Parse<GenderEnum>(value);
+            }
+        }
+
+        public DateTime BirthDate
+        {
+            get => _birthDate;
+            set
+            {
+                if(value > DateTime.Now)
+                    throw new ArgumentException("Birth day cannot be greater than today.");
+                _birthDate = value;
+            }
+        }
+
+        //Derived
         [XmlIgnore]
         public int Age
         {
@@ -26,65 +75,88 @@ namespace CinemaManagementSystem
             }
         }
 
-        // ---------- Class extent ----------
+        //Class extent
         private static List<Actor> _actors = new List<Actor>();
         public static IReadOnlyList<Actor> Actors => _actors.AsReadOnly();
-
         
+        private static void AddActor(Actor actor)
+        {
+            if (actor == null)
+                throw new ArgumentException("Actor cannot be null");
+
+            _actors.Add(actor);
+        }
+
+        //for testing
         public static void ClearAllActors()
         {
             _actors.Clear();
         }
 
-        // ---------- Constructors ----------
+        //Constructors
         public Actor() { }
 
         public Actor(string name, string surname, string gender, DateTime birthDate)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name cannot be empty.");
-            if (string.IsNullOrWhiteSpace(surname))
-                throw new ArgumentException("Surname cannot be empty.");
-            if (string.IsNullOrWhiteSpace(gender))
-                throw new ArgumentException("Gender cannot be empty.");
-            if (birthDate > DateTime.Now)
-                throw new ArgumentException("Birth date cannot be in the future.");
 
             Name = name;
             Surname = surname;
             Gender = gender;
             BirthDate = birthDate;
 
-            _actors.Add(this);
+            AddActor(this);
         }
 
-        // ---------- Methods ----------
+        //Methods 
         public override string ToString()
         {
             return $"{Name} {Surname}, {Gender}, Age: {Age}";
         }
 
-        // ---------- Persistence ----------
+        //Persistence 
         public static void Save(string filePath)
         {
+            StreamWriter sw = File.CreateText(filePath);
             XmlSerializer serializer = new XmlSerializer(typeof(List<Actor>));
-            using (StreamWriter writer = new StreamWriter(filePath))
+            using (XmlTextWriter writer = new XmlTextWriter(sw))
             {
                 serializer.Serialize(writer, _actors);
             }
         }
 
-        public static void Load(string filePath)
+        public static bool Load(string filePath)
         {
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException("Actor file not found.");
+            StreamReader file;
+            try
+            {
+                file = File.OpenText(filePath);
+            }
+            catch (FileNotFoundException)
+            {
+                _actors.Clear();
+                return false;
+            }
 
             XmlSerializer serializer = new XmlSerializer(typeof(List<Actor>));
-            using (StreamReader reader = new StreamReader(filePath))
+            using (XmlTextReader reader = new XmlTextReader(filePath))
             {
-                var loaded = (List<Actor>)serializer.Deserialize(reader);
-                _actors = loaded ?? new List<Actor>();
+                try
+                {
+                    _actors = (List<Actor>)serializer.Deserialize(reader);
+                }
+                catch (InvalidCastException)
+                {
+                    _actors.Clear();
+                    return false;
+                }
+                catch (Exception)
+                {
+                    _actors.Clear();
+                    return false;
+                }
             }
+
+            return true;
         }
     }
 }

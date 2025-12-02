@@ -8,26 +8,31 @@ namespace CinemaManagementSystem.Tests
     [TestFixture]
     public class HallTests
     {
-        private string filePath;
+        private string filePath = "halls_test.xml";
 
         [SetUp]
         public void Setup()
         {
-            filePath = Path.Combine(Path.GetTempPath(), "halls_test.xml");
-
-            if (File.Exists(filePath))
-                File.Delete(filePath);
 
             Hall.ClearExtent();
         }
-
-        [TearDown]
-        public void Cleanup()
+        
+        //test hall number
+        [Test]
+        public void HallValidation_ShouldThrowException()
         {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
-
-            Hall.ClearExtent();
+            Hall hall = new Hall(10);
+            Assert.Throws<ArgumentException>(() =>
+                hall.Number = 120
+            );
+        }
+        
+        [Test]
+        public void HallValidation_ShouldSetSuccessfully()
+        {
+            Hall hall = new Hall(10);
+            hall.Number = 90;
+            Assert.That(hall.Number, Is.EqualTo(90));
         }
 
         [Test]
@@ -42,28 +47,22 @@ namespace CinemaManagementSystem.Tests
         {
             Assert.Throws<ArgumentException>(() => new Hall(0));
         }
-
-        [Test]
-        public void Constructor_DuplicateNumber_ShouldThrowException()
-        {
-            new Hall(2);
-            Assert.Throws<ArgumentException>(() => new Hall(2));
-        }
+        
 
         [Test]
         public void SaveAndLoad_ShouldPersistHalls()
         {
-            // Arrange – 3 farklı salon oluştur
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+            
             var h1 = new Hall(1);
             var h2 = new Hall(2);
             var h3 = new Hall(3);
 
-            // Act – Kaydet, temizle, sonra yükle
             Hall.Save(filePath);
             Hall.ClearExtent();
             Hall.Load(filePath);
 
-            // Assert – 3 kayıt geldi mi kontrol et
             Assert.That(Hall.Halls.Count, Is.EqualTo(3));
             Assert.That(Hall.Halls[0].Number, Is.EqualTo(1));
             Assert.That(Hall.Halls[1].Number, Is.EqualTo(2));

@@ -1,73 +1,105 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml;
 using System.Xml.Serialization;
+using CinemaManagementSystem.Enums;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
     public class Movie
     {
-        // ---------- Attributes ----------
-        public string Title { get; set; }
+        //  Attributes 
+        private string _title;
 
         // Multi-value attributes
-        public List<string> Directors { get; set; } = new List<string>();
-        public List<string> Genres { get; set; } = new List<string>();
-
-        public string ScreeningType { get; set; } // örn. "2D", "3D", "IMAX"
-        public int Duration { get; set; }
-
-        // Derived attribute example
-        [XmlIgnore]
-        public int AgeInYears
+        private List<string> _directors;
+        private List<string> _genres;
+        private ScreeningEnum _screeningType;
+        private int _duration;
+        
+        public string Title
         {
-            get
+            get => _title;
+            set
             {
-                return DateTime.Now.Year - ReleaseDate.Year -
-                    (DateTime.Now.DayOfYear < ReleaseDate.DayOfYear ? 1 : 0);
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Title cannot be empty.");
+                _title = value;
+            }
+            
+        }
+        
+        // Multi-value attributes
+        public List<string> Directors
+        {
+            get => _directors;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentException("At least one director must be specified.");
+                _directors = value;
             }
         }
 
-        public DateTime ReleaseDate { get; set; }
+        public List<string> Genres
+        {
+            get => _genres;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentException("At least one genre must be specified.");
+                _genres = value;
+            }
+        }
 
-        // ---------- Class extent ----------
+        public ScreeningEnum ScreeningType
+        {
+            get => _screeningType;
+            set => _screeningType = value;
+        }
+
+        public int Duration
+        {
+            get => _duration;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Duration must be positive.");
+                _duration = value;
+            }
+        }
+        
+
+        //  Class extent
         private static List<Movie> _movies = new List<Movie>();
         public static IReadOnlyList<Movie> Movies => _movies.AsReadOnly();
+        
+        private static void AddMovie(Movie movie)
+        {
+            if (movie == null)
+                throw new ArgumentException("movie cannot be null");
 
-        // ---------- Constructors ----------
+            _movies.Add(movie);
+        }
+
+        //  Constructors 
         public Movie() { }
 
-        public Movie(string title, List<string> directors, List<string> genres, string screeningType, int duration, DateTime releaseDate)
+        public Movie(string title, List<string> directors, List<string> genres, ScreeningEnum screeningType, int duration)
         {
-            if (string.IsNullOrWhiteSpace(title))
-                throw new ArgumentException("Title cannot be empty.");
-            if (directors == null || directors.Count == 0)
-                throw new ArgumentException("At least one director must be specified.");
-            if (genres == null || genres.Count == 0)
-                throw new ArgumentException("At least one genre must be specified.");
-            if (string.IsNullOrWhiteSpace(screeningType))
-                throw new ArgumentException("Screening type cannot be empty.");
-            if (duration <= 0)
-                throw new ArgumentException("Duration must be positive.");
-            if (releaseDate > DateTime.Now)
-                throw new ArgumentException("Release date cannot be in the future.");
 
             Title = title;
             Directors = directors;
             Genres = genres;
             ScreeningType = screeningType;
             Duration = duration;
-            ReleaseDate = releaseDate;
 
-            _movies.Add(this);
+            AddMovie(this);
         }
 
-        // ---------- Methods ----------
-        public static Movie AddMovie(string title, List<string> directors, List<string> genres, string screeningType, int duration, DateTime releaseDate)
-        {
-            return new Movie(title, directors, genres, screeningType, duration, releaseDate);
-        }
+      
 
         public override string ToString()
         {
@@ -76,13 +108,14 @@ namespace CinemaManagementSystem
             return $"{Title} ({genres}) directed by {directors}, {ScreeningType}, {Duration} min";
         }
 
-        // ---------- Persistence ----------
+        //  Persistence 
         public static void Save(string filePath)
         {
+            StreamWriter sw = File.CreateText(filePath);
             XmlSerializer serializer = new XmlSerializer(typeof(List<Movie>));
-            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (XmlTextWriter writer = new XmlTextWriter(sw))
             {
-                serializer.Serialize(fs, _movies);
+                serializer.Serialize(writer, _movies);
             }
         }
 
@@ -94,9 +127,11 @@ namespace CinemaManagementSystem
             XmlSerializer serializer = new XmlSerializer(typeof(List<Movie>));
             using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                _movies = (List<Movie>)serializer.Deserialize(fs);
+                var loaded = (List<Movie>)serializer.Deserialize(fs);
+                _movies = loaded ?? new List<Movie>();
             }
         }
+
 
         public static void ClearExtent()
         {

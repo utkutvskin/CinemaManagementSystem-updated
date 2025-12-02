@@ -13,40 +13,62 @@ namespace CinemaManagementSystem.Tests
         [SetUp]
         public void SetUp()
         {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
 
             Customer.ClearAllCustomers();
         }
 
-        [TearDown]
-        public void Cleanup()
+        //Test Name/Surname setter 
+        [Test]
+        public void NameSetterValidation_ShouldThrowException()
         {
-            if (File.Exists(filePath))
-            {
-                try { File.Delete(filePath); }
-                catch { /* ignore */ }
-            }
+            Customer customer = new Customer("John", "Doe", new DateTime(1990, 5, 10));
+            Assert.Throws<ArgumentException>(() =>
+                customer.Name = " "
+            );
+        }
+        [Test]
+        public void SurnameSetterValidation_ShouldSetSurnameSuccessfully()
+        {
+            Customer customer = new Customer("John", "Doe", new DateTime(1990, 5, 10));
+            customer.Surname = "Smith";
+            Assert.That(customer.Surname, Is.EqualTo("Smith"));
+        }
+        
+        //Test BirthDay setter
+        [Test]
+        public void BirthDaySetterValidation_ShouldThrowException()
+        {
+            Customer customer = new Customer("John", "Doe", new DateTime(1990, 5, 10));
+            Assert.Throws<ArgumentException>(() =>
+                customer.DateOfBirth = new DateTime(2024, 3,4)
+            );
 
-            Customer.ClearAllCustomers();
         }
 
         [Test]
+        public void BirthDateSetterValidation_ShouldSetBirthDateSuccessfully()
+        {
+            Customer customer = new Customer("John", "Doe", new DateTime(1990, 5, 10));
+            customer.DateOfBirth = new DateTime(2005, 3, 4);
+            Assert.That(customer.DateOfBirth, Is.EqualTo(new DateTime(2005, 3, 4)));
+        }
+        
+        
+        [Test]
         public void Constructor_ValidData_ShouldCreateCustomer()
         {
-            var customer = new Customer("Alice", "Smith", "Female", new DateTime(1995, 3, 15));
+            var customer = new Customer("Alice", "Smith", new DateTime(1995, 3, 15));
 
             Assert.AreEqual("Alice", customer.Name);
             Assert.AreEqual("Smith", customer.Surname);
-            Assert.AreEqual("Female", customer.Gender);
-            Assert.AreEqual(1995, customer.BirthDate.Year);
+            Assert.AreEqual(1995, customer.DateOfBirth.Year);
         }
 
         [Test]
         public void Constructor_EmptyName_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Customer("", "Smith", "Female", new DateTime(1995, 3, 15))
+                new Customer("", "Smith", new DateTime(1995, 3, 15))
             );
         }
 
@@ -54,7 +76,7 @@ namespace CinemaManagementSystem.Tests
         public void Constructor_EmptySurname_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Customer("Alice", "", "Female", new DateTime(1995, 3, 15))
+                new Customer("Alice", "", new DateTime(1995, 3, 15))
             );
         }
 
@@ -62,7 +84,7 @@ namespace CinemaManagementSystem.Tests
         public void Constructor_FutureBirthDate_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Customer("Alice", "Smith", "Female", DateTime.Now.AddYears(1))
+                new Customer("Alice", "Smith", DateTime.Now.AddYears(1))
             );
         }
 
@@ -70,7 +92,7 @@ namespace CinemaManagementSystem.Tests
         public void Age_ShouldCalculateCorrectly()
         {
             var birthDate = new DateTime(2000, 6, 15);
-            var customer = new Customer("Bob", "Jones", "Male", birthDate);
+            var customer = new Customer("Bob", "Jones", birthDate);
 
             int expectedAge = DateTime.Now.Year - 2000;
             if (DateTime.Now.DayOfYear < birthDate.DayOfYear)
@@ -82,18 +104,20 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void ToString_ShouldReturnFormattedString()
         {
-            var customer = new Customer("Alice", "Smith", "Female", new DateTime(1995, 3, 15));
+            var customer = new Customer("Alice", "Smith", new DateTime(1995, 3, 15));
             string text = customer.ToString();
 
             StringAssert.Contains("Alice Smith", text);
-            StringAssert.Contains("Female", text);
         }
 
         [Test]
         public void SaveAndLoad_ShouldPersistCustomers()
         {
-            new Customer("Alice", "Smith", "Female", new DateTime(1995, 3, 15));
-            new Customer("Bob", "Jones", "Male", new DateTime(1988, 7, 20));
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+            
+            new Customer("Alice", "Smith", new DateTime(1995, 3, 15));
+            new Customer("Bob", "Jones", new DateTime(1988, 7, 20));
 
             Customer.Save(filePath);
             Assert.That(File.Exists(filePath), "File should be created");

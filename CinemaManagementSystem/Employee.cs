@@ -2,21 +2,93 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
+using System.Xml;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
     public class Employee
     {
-        // ---------- Attributes ----------
-        public string Name { get; set; }         
-        public string Surname { get; set; }      
-        public DateTime BirthDate { get; set; }  
-        public DateTime StartDate { get; set; }  
-        public DateTime? EndDate { get; set; }   
-        public double Salary { get; set; }       
+        [XmlIgnore]
+        private static double _minSalary = 3000;
+        
+        //Attributes 
+        private string _name;
+        private string _surname;
+        private DateTime _birthDate;
+        private DateTime _startDate;
+        private DateTime? _endDate;
+        private double _salary;
 
-        // ---------- Derived Attributes ----------
+
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Name cannot be empty.");
+                _name = value;
+            }
+        }
+        
+        public string Surname
+        {
+            get => _surname;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Surname cannot be empty.");
+                _surname = value;
+            }
+        }
+
+        public DateTime BirthDate
+        {
+            get => _birthDate;
+            set
+            {
+                if(value > DateTime.Now.AddYears(-16)) 
+                    throw new ArgumentException("You must be older than 16 years old"); 
+                _birthDate = value;
+                
+            }
+        }
+
+        public DateTime StartDate
+        {
+            get => _startDate;
+            set
+            {
+                if(value > DateTime.Now )
+                    throw new ArgumentException("Start date cannot be greater than today.");
+                _startDate = value;
+            }
+        }
+
+        public DateTime? EndDate
+        {
+            get => _endDate;
+            set
+            {
+                if(value > DateTime.Now || value < StartDate)
+                    throw new ArgumentException("End date cannot be greater than today or less than start date.");
+                _endDate = value;
+            }
+        }
+
+        public double Salary
+        {
+            get => _salary;
+            set
+            {
+                if(value < _minSalary)
+                    throw new ArgumentException("Salary cannot be less than minimum salary.");
+                _salary = value;
+            }
+        }
+
+        //  Derived Attributes 
         [XmlIgnore]
         public int Age
         {
@@ -42,33 +114,29 @@ namespace CinemaManagementSystem
             }
         }
 
-        // ---------- Class extent ----------
+        // Class extent 
         private static List<Employee> _employees = new List<Employee>();
         public static IReadOnlyList<Employee> Employees => _employees.AsReadOnly();
 
+        private static void AddEmployee(Employee employee)
+        {
+            if (employee == null)
+                throw new ArgumentException("employee cannot be null");
+
+            _employees.Add(employee);
+        }
+        
         
         public static void ClearAllEmployees()
         {
             _employees.Clear();
         }
 
-        // ---------- Constructors ----------
-        public Employee() { } // XmlSerializer için gerekli
+        //  Constructors 
+        public Employee() { } 
 
         public Employee(string name, string surname, DateTime birthDate, DateTime startDate, double salary, DateTime? endDate = null)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name cannot be empty.");
-            if (string.IsNullOrWhiteSpace(surname))
-                throw new ArgumentException("Surname cannot be empty.");
-            if (birthDate > DateTime.Now)
-                throw new ArgumentException("Birth date cannot be in the future.");
-            if (startDate > DateTime.Now)
-                throw new ArgumentException("Start date cannot be in the future.");
-            if (endDate.HasValue && endDate < startDate)
-                throw new ArgumentException("End date cannot be before start date.");
-            if (salary <= 0)
-                throw new ArgumentException("Salary must be positive.");
 
             Name = name;
             Surname = surname;
@@ -77,26 +145,22 @@ namespace CinemaManagementSystem
             EndDate = endDate;
             Salary = salary;
 
-            _employees.Add(this);
+            AddEmployee(this);
         }
 
-        // ---------- Methods ----------
-        public void AccessShiftsList()
-        {
-            Console.WriteLine($"{Name} {Surname} is accessing the shift list...");
-        }
-
+        //  Methods 
         public override string ToString()
         {
             string end = EndDate.HasValue ? EndDate.Value.ToShortDateString() : "Present";
             return $"{Name} {Surname}, Age: {Age}, Salary: {Salary}€, Started: {StartDate:dd/MM/yyyy}, End: {end}, Years of Service: {YearsOfService}";
         }
 
-        // ---------- Persistence ----------
+        //  Persistence 
         public static void Save(string filePath)
         {
+            StreamWriter sw = File.CreateText(filePath);
             XmlSerializer serializer = new XmlSerializer(typeof(List<Employee>));
-            using (StreamWriter writer = new StreamWriter(filePath))
+            using (XmlTextWriter writer = new XmlTextWriter(sw))
             {
                 serializer.Serialize(writer, _employees);
             }

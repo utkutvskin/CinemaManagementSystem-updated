@@ -8,24 +8,56 @@ namespace CinemaManagementSystem.Tests
     [TestFixture]
     public class StampcardTests
     {
-        private string filePath;
+        private string filePath = "stampcards_test.xml";
 
         [SetUp]
         public void Setup()
         {
-            filePath = Path.Combine(Path.GetTempPath(), "stampcards_test.xml");
-            if (File.Exists(filePath))
-                File.Delete(filePath);
             Stampcard.ClearExtent();
         }
 
-        [TearDown]
-        public void Cleanup()
+        [Test]
+        public void DateOfPurchaseSetter_ShouldThrowException()
         {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
+            var card = new Stampcard();
+
+            Assert.Throws<ArgumentException>(() =>
+                card.DateOfPurchase = DateTime.Now.AddDays(1)
+            );
         }
 
+        [Test]
+        public void DateOfPurchaseSetter_ShouldSetSuccessfully()
+        {
+            var card = new Stampcard();
+            var pastDate = new DateTime(2020, 1, 1);
+
+            card.DateOfPurchase = pastDate;
+
+            Assert.That(card.DateOfPurchase, Is.EqualTo(pastDate));
+        }
+        
+        
+        [Test]
+        public void NumberOfStampsSetter_ShouldThrowException()
+        {
+            var card = new Stampcard();
+
+            Assert.Throws<ArgumentException>(() =>
+                card.NumberOfStamps = 5
+            );
+        }
+        
+        [Test]
+        public void NumberOfStampsSetter_ShouldSetSuccessfully()
+        {
+            var card = new Stampcard();
+
+            card.NumberOfStamps = 3;
+
+            Assert.That(card.NumberOfStamps, Is.EqualTo(3));
+        }
+        
         [Test]
         public void Constructor_ShouldInitializeWithZeroStamps()
         {
@@ -52,18 +84,18 @@ namespace CinemaManagementSystem.Tests
         {
             var card = new Stampcard();
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 4; i++)
                 card.AddStamp();
 
             Assert.That(card.IsCompleted, Is.True);
-            Assert.That(card.NumberOfStamps, Is.EqualTo(10));
+            Assert.That(card.NumberOfStamps, Is.EqualTo(4));
         }
 
         [Test]
         public void AddStamp_ShouldThrow_WhenAlreadyCompleted()
         {
             var card = new Stampcard();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 4; i++)
                 card.AddStamp();
 
             Assert.Throws<InvalidOperationException>(() => card.AddStamp());
@@ -84,6 +116,9 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void SaveAndLoad_ShouldPersistStampcards()
         {
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+            
             var c1 = new Stampcard();
             var c2 = new Stampcard();
             c1.AddStamp();
