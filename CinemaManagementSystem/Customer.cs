@@ -8,19 +8,66 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Customer
     {
-        // ---------- Attributes ----------
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Gender { get; set; }  
-        public DateTime BirthDate { get; set; }  
+        // ---------- Backing fields ----------
+        private string _name;
+        private string _surname;
+        private string _gender;
+        private DateTime _birthDate;
 
-        [XmlIgnore]
+        // ---------- Properties with validation ----------
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Name cannot be empty.");
+                _name = value.Trim();
+            }
+        }
+
+        public string Surname
+        {
+            get => _surname;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Surname cannot be empty.");
+                _surname = value.Trim();
+            }
+        }
+
+        public string Gender
+        {
+            get => _gender;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Gender cannot be empty.");
+                _gender = value.Trim();
+            }
+        }
+
+        public DateTime BirthDate
+        {
+            get => _birthDate;
+            set
+            {
+                if (value > DateTime.Now)
+                    throw new ArgumentException("Birth date cannot be in the future.");
+                _birthDate = value;
+            }
+        }
+
+        // ---------- Calculated Age (get-only) ----------
+        // Age is computed on-the-fly from BirthDate and thus will not be serialized.
         public int Age
         {
             get
             {
-                int age = DateTime.Now.Year - BirthDate.Year;
-                if (DateTime.Now.DayOfYear < BirthDate.DayOfYear)
+                var today = DateTime.Today;
+                int age = today.Year - BirthDate.Year;
+                if (BirthDate > today.AddYears(-age))
                     age--;
                 return age;
             }
@@ -30,27 +77,16 @@ namespace CinemaManagementSystem
         private static List<Customer> _customers = new List<Customer>();
         public static IReadOnlyList<Customer> Customers => _customers.AsReadOnly();
 
-        
         public static void ClearAllCustomers()
         {
             _customers.Clear();
         }
 
         // ---------- Constructors ----------
-        public Customer() { }  // XML serialization için
+        public Customer() { } // parameterless ctor for serializer
 
-       
         public Customer(string name, string surname, string gender, DateTime birthDate)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name cannot be empty.");
-            if (string.IsNullOrWhiteSpace(surname))
-                throw new ArgumentException("Surname cannot be empty.");
-            if (string.IsNullOrWhiteSpace(gender))
-                throw new ArgumentException("Gender cannot be empty.");
-            if (birthDate > DateTime.Now)
-                throw new ArgumentException("Birth date cannot be in the future.");
-
             Name = name;
             Surname = surname;
             Gender = gender;
@@ -86,6 +122,8 @@ namespace CinemaManagementSystem
                 var loaded = (List<Customer>)serializer.Deserialize(reader);
                 _customers = loaded ?? new List<Customer>();
             }
+
+            // Age is computed from BirthDate (get-only), so no manual recalculation is needed here.
         }
     }
 }
