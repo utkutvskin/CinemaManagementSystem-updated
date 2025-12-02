@@ -1,109 +1,105 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using CinemaManagementSystem;  
+using CinemaManagementSystem;
 
 namespace CinemaManagementSystem.Tests
 {
     [TestFixture]
     public class ActorTests
     {
-        private string filePath = "actors_test.xml";
-
         [SetUp]
         public void SetUp()
         {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
-
             Actor.ClearAllActors();
         }
 
         [TearDown]
-        public void Cleanup()
+        public void TearDown()
         {
-            if (File.Exists(filePath))
-            {
-                try { File.Delete(filePath); }
-                catch { /* ignore */ }
-            }
-
             Actor.ClearAllActors();
         }
 
         [Test]
-        public void Constructor_ValidData_ShouldCreateActor()
+        public void Name_SetEmpty_ThrowsArgumentException()
         {
-            var actor = new Actor("John", "Doe", "Male", new DateTime(1990, 5, 10));
-
-            Assert.AreEqual("John", actor.Name);
-            Assert.AreEqual("Doe", actor.Surname);
-            Assert.AreEqual("Male", actor.Gender);
-            Assert.AreEqual(1990, actor.BirthDate.Year);
+            var actor = new Actor();
+            Assert.Throws<ArgumentException>(() => actor.Name = "");
+            Assert.Throws<ArgumentException>(() => actor.Name = "   ");
         }
 
         [Test]
-        public void Constructor_EmptyName_ShouldThrowException()
+        public void Surname_SetEmpty_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentException>(() =>
-                new Actor("", "Doe", "Male", new DateTime(1990, 5, 10))
-            );
+            var actor = new Actor();
+            Assert.Throws<ArgumentException>(() => actor.Surname = "");
+            Assert.Throws<ArgumentException>(() => actor.Surname = "   ");
         }
 
         [Test]
-        public void Constructor_EmptySurname_ShouldThrowException()
+        public void Gender_SetEmpty_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentException>(() =>
-                new Actor("John", "", "Male", new DateTime(1990, 5, 10))
-            );
+            var actor = new Actor();
+            Assert.Throws<ArgumentException>(() => actor.Gender = "");
+            Assert.Throws<ArgumentException>(() => actor.Gender = "   ");
         }
 
         [Test]
-        public void Constructor_FutureBirthDate_ShouldThrowException()
+        public void BirthDate_InFuture_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentException>(() =>
-                new Actor("John", "Doe", "Male", DateTime.Now.AddYears(2))
-            );
+            var actor = new Actor();
+            Assert.Throws<ArgumentException>(() => actor.BirthDate = DateTime.Now.AddDays(1));
         }
 
         [Test]
-        public void Age_ShouldCalculateCorrectly()
+        public void Age_Computed_From_BirthDate_Correctly()
         {
-            var birthDate = new DateTime(2000, 1, 1);
-            var actor = new Actor("Jane", "Smith", "Female", birthDate);
+            // Sabit bir doğum tarihi kullanarak testin sağlam kalmasını sağlıyoruz
+            var birth = new DateTime(1990, 6, 15);
+            var actor = new Actor("Test", "User", "M", birth);
 
-            int expectedAge = DateTime.Now.Year - 2000;
-            if (DateTime.Now.DayOfYear < birthDate.DayOfYear)
-                expectedAge--;
+            var today = DateTime.Today;
+            int expectedAge = today.Year - birth.Year;
+            if (birth > today.AddYears(-expectedAge)) expectedAge--;
 
             Assert.AreEqual(expectedAge, actor.Age);
         }
 
         [Test]
-        public void ToString_ShouldReturnFormattedString()
+        public void SaveAndLoad_PreservesFields_And_Age_Computed_After_Load()
         {
-            var actor = new Actor("John", "Doe", "Male", new DateTime(1990, 5, 10));
-            string text = actor.ToString();
-            StringAssert.Contains("John Doe", text);
-            StringAssert.Contains("Male", text);
-        }
+            var birth = new DateTime(1988, 3, 20);
+            var actor = new Actor("Alice", "Smith", "F", birth);
 
-        [Test]
-        public void SaveAndLoad_ShouldPersistActors()
-        {
-            new Actor("John", "Doe", "Male", new DateTime(1990, 5, 10));
-            new Actor("Jane", "Smith", "Female", new DateTime(1985, 3, 20));
+            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".xml");
+            try
+            {
+                Actor.Save(tempFile);
 
-            Actor.Save(filePath);
-            Assert.That(File.Exists(filePath));
+                // Belleği temizle ve dosyadan yükle
+                Actor.ClearAllActors();
+                Assert.IsEmpty(Actor.Actors);
 
-            Actor.ClearAllActors();
+                Actor.Load(tempFile);
 
-            Actor.Load(filePath);
+                Assert.AreEqual(1, Actor.Actors.Count);
+                var loaded = Actor.Actors[0];
 
-            Assert.That(Actor.Actors.Count, Is.EqualTo(2));
-            Assert.That(Actor.Actors[0].Name, Is.EqualTo("John"));
-            Assert.That(Actor.Actors[1].Name, Is.EqualTo("Jane"));
+                Assert.AreEqual("Alice", loaded.Name);
+                Assert.AreEqual("Smith", loaded.Surname);
+                Assert.AreEqual("F", loaded.Gender);
+                Assert.AreEqual(birth, loaded.BirthDate);
+
+                // Age dosyadan gelmez; BirthDate'e göre hesaplanır
+                var today = DateTime.Today;
+                int expectedAge = today.Year - birth.Year;
+                if (birth > today.AddYears(-expectedAge)) expectedAge--;
+                Assert.AreEqual(expectedAge, loaded.Age);
+            }
+            finally
+            {
+                if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
         }
     }
 }
