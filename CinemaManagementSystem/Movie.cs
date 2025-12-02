@@ -8,51 +8,112 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Movie
     {
-        // ---------- Attributes ----------
-        public string Title { get; set; }
+        // ---------- Backing fields (preserve original public names) ----------
+        private string _title;
+        private List<string> _directors = new List<string>();
+        private List<string> _genres = new List<string>();
+        private string _screeningType;
+        private int _duration;
+        private DateTime _releaseDate;
 
-        // Multi-value attributes
-        public List<string> Directors { get; set; } = new List<string>();
-        public List<string> Genres { get; set; } = new List<string>();
+        // ---------- Properties with validation ----------
+        public string Title
+        {
+            get => _title;
+            set
+            {
+                var trimmed = value?.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed))
+                    throw new ArgumentException("Title cannot be empty.");
+                _title = trimmed;
+            }
+        }
 
-        public string ScreeningType { get; set; } // örn. "2D", "3D", "IMAX"
-        public int Duration { get; set; }
+        public List<string> Directors
+        {
+            get => _directors;
+            set
+            {
+                if (value == null || value.Count == 0)
+                    throw new ArgumentException("At least one director must be specified.");
+                // copy to avoid external mutation
+                _directors = new List<string>(value);
+            }
+        }
 
-        // Derived attribute example
-        [XmlIgnore]
+        public List<string> Genres
+        {
+            get => _genres;
+            set
+            {
+                if (value == null || value.Count == 0)
+                    throw new ArgumentException("At least one genre must be specified.");
+                _genres = new List<string>(value);
+            }
+        }
+
+        public string ScreeningType
+        {
+            get => _screeningType;
+            set
+            {
+                var trimmed = value?.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed))
+                    throw new ArgumentException("Screening type cannot be empty.");
+                _screeningType = trimmed;
+            }
+        }
+
+        public int Duration
+        {
+            get => _duration;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Duration must be positive.");
+                _duration = value;
+            }
+        }
+
+        public DateTime ReleaseDate
+        {
+            get => _releaseDate;
+            set
+            {
+                if (value > DateTime.Now)
+                    throw new ArgumentException("Release date cannot be in the future.");
+                _releaseDate = value;
+            }
+        }
+
+        // ---------- Derived attribute ----------
+       
         public int AgeInYears
         {
             get
             {
-                return DateTime.Now.Year - ReleaseDate.Year -
-                    (DateTime.Now.DayOfYear < ReleaseDate.DayOfYear ? 1 : 0);
+                var today = DateTime.Today;
+                int age = today.Year - ReleaseDate.Year;
+                if (ReleaseDate > today.AddYears(-age))
+                    age--;
+                return age;
             }
         }
-
-        public DateTime ReleaseDate { get; set; }
 
         // ---------- Class extent ----------
         private static List<Movie> _movies = new List<Movie>();
         public static IReadOnlyList<Movie> Movies => _movies.AsReadOnly();
 
+        // Backwards-compatible clear methods
+        public static void ClearAllMovies() => _movies.Clear();
+        public static void ClearExtent() => ClearAllMovies();
+
         // ---------- Constructors ----------
-        public Movie() { }
+        public Movie() { } // serializer
 
         public Movie(string title, List<string> directors, List<string> genres, string screeningType, int duration, DateTime releaseDate)
         {
-            if (string.IsNullOrWhiteSpace(title))
-                throw new ArgumentException("Title cannot be empty.");
-            if (directors == null || directors.Count == 0)
-                throw new ArgumentException("At least one director must be specified.");
-            if (genres == null || genres.Count == 0)
-                throw new ArgumentException("At least one genre must be specified.");
-            if (string.IsNullOrWhiteSpace(screeningType))
-                throw new ArgumentException("Screening type cannot be empty.");
-            if (duration <= 0)
-                throw new ArgumentException("Duration must be positive.");
-            if (releaseDate > DateTime.Now)
-                throw new ArgumentException("Release date cannot be in the future.");
-
+            // Use property setters so validation and normalization are reused
             Title = title;
             Directors = directors;
             Genres = genres;
@@ -63,7 +124,7 @@ namespace CinemaManagementSystem
             _movies.Add(this);
         }
 
-        // ---------- Methods ----------
+        // Convenience factory preserved
         public static Movie AddMovie(string title, List<string> directors, List<string> genres, string screeningType, int duration, DateTime releaseDate)
         {
             return new Movie(title, directors, genres, screeningType, duration, releaseDate);
@@ -79,10 +140,16 @@ namespace CinemaManagementSystem
         // ---------- Persistence ----------
         public static void Save(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Movie>));
+            var serializer = new XmlSerializer(typeof(List<Movie>));
+
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
             using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 serializer.Serialize(fs, _movies);
+                fs.Flush();
             }
         }
 
@@ -91,16 +158,12 @@ namespace CinemaManagementSystem
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("Movie file not found.");
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Movie>));
+            var serializer = new XmlSerializer(typeof(List<Movie>));
             using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                _movies = (List<Movie>)serializer.Deserialize(fs);
+                var loaded = (List<Movie>)serializer.Deserialize(fs);
+                _movies = loaded ?? new List<Movie>();
             }
-        }
-
-        public static void ClearExtent()
-        {
-            _movies.Clear();
         }
     }
 }
