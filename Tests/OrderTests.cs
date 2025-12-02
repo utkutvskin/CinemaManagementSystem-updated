@@ -8,22 +8,31 @@ namespace CinemaManagementSystem.Tests
     [TestFixture]
     public class OrderTests
     {
-        private string filePath;
+        private string _filePath;
 
         [SetUp]
         public void Setup()
         {
-            filePath = Path.Combine(Path.GetTempPath(), "orders_test.xml");
-            if (File.Exists(filePath))
-                File.Delete(filePath);
-            Order.ClearExtent();
+            // Use a unique temp file per test to avoid collisions
+            _filePath = Path.Combine(Path.GetTempPath(), $"orders_test_{Guid.NewGuid()}.xml");
+
+            // Ensure clean static state
+            Order.ClearAllOrders();
+            if (File.Exists(_filePath))
+                File.Delete(_filePath);
         }
 
         [TearDown]
         public void Cleanup()
         {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
+            try
+            {
+                if (File.Exists(_filePath))
+                    File.Delete(_filePath);
+            }
+            catch { /* ignore cleanup errors */ }
+
+            Order.ClearAllOrders();
         }
 
         [Test]
@@ -32,7 +41,6 @@ namespace CinemaManagementSystem.Tests
             var order = new Order("1234-5678-9012-3456");
 
             Assert.That(order.CardInfo, Is.EqualTo("1234-5678-9012-3456"));
-           
             Assert.That(Order.Orders.Count, Is.EqualTo(1));
         }
 
@@ -40,6 +48,7 @@ namespace CinemaManagementSystem.Tests
         public void Constructor_EmptyCardInfo_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() => new Order(""));
+            Assert.Throws<ArgumentException>(() => new Order("   "));
         }
 
         [Test]
@@ -55,13 +64,20 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void SaveAndLoad_ShouldPersistOrders()
         {
+            // Arrange
             var o1 = new Order("9876-5432-1111-2222");
             var o2 = new Order("1234-5678-9999-8888");
 
-            Order.Save(filePath);
-            Order.ClearExtent();
-            Order.Load(filePath);
+            // Act
+            Order.Save(_filePath);
 
+            // Clear in-memory list to ensure Load restores data
+            Order.ClearAllOrders();
+            Assert.That(Order.Orders.Count, Is.EqualTo(0));
+
+            Order.Load(_filePath);
+
+            // Assert
             Assert.That(Order.Orders.Count, Is.EqualTo(2));
             Assert.That(Order.Orders[0].CardInfo, Is.EqualTo("9876-5432-1111-2222"));
             Assert.That(Order.Orders[1].CardInfo, Is.EqualTo("1234-5678-9999-8888"));
