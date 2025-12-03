@@ -226,6 +226,18 @@ namespace CinemaManagementSystem.Tests
         }
 
         [Test]
+         public void AddDirector_AfterReleaseDate_ShouldThrowException()
+    {
+        var directors = new List<string> { "Lana Wachowski" };
+        var genres = new List<GenreEnum> { GenreEnum.Sci_fi };
+        var oldDate = DateTime.Now.AddDays(-1); 
+        var movie = new Movie("Matrix", directors, genres, ScreeningEnum.TwoD, 136, oldDate);
+        Assert.Throws<InvalidOperationException>(() => 
+            movie.AddDirector("Lilly Wachowski")
+        );
+    }
+
+        [Test]
         public void SaveAndLoad_ShouldPersistMovies()
         {
             if (File.Exists(filePath))
@@ -249,3 +261,4 @@ namespace CinemaManagementSystem.Tests
         }
     }
 }
+
