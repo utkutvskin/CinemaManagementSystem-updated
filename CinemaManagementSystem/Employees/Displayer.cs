@@ -46,8 +46,7 @@ namespace CinemaManagementSystem
 }    
         public void ManageSelectedScreens(List<Hall> screens)
         {
-            // Main logic will be implemented later
-            // For now, we just update the managed count based on the list size
+        
             if (screens != null)
             {
                 NumberOfScreensManaged = screens.Count;
