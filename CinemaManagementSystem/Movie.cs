@@ -111,18 +111,21 @@ namespace CinemaManagementSystem
         {
             if (actor == null)
                 throw new ArgumentException("Actor cannot be null.");
-
+        
             if (!_actors.Contains(actor))
                 throw new InvalidOperationException("Actor is not assigned to this movie.");
-
+        
+            if (_actors.Count == 1)
+                throw new InvalidOperationException("A movie must have at least one actor!"); // Multiplicity 1..*
+        
             _actors.Remove(actor);
-
-            
+        
             if (actor.Movies.Contains(this))
             {
                 actor.RemoveMovieInternal(this);
             }
         }
+
 
 
         internal void AddActorInternal(Actor actor)
@@ -286,5 +289,6 @@ namespace CinemaManagementSystem
         }
     }
 }
+
 
 
