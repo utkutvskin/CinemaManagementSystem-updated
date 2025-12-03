@@ -77,6 +77,42 @@ namespace CinemaManagementSystem
             return $"Stampcard - Purchased: {DateOfPurchase:dd/MM/yyyy}, Stamps: {NumberOfStamps}, Completed: {IsCompleted}";
         }
 
+     // ---------- Association: Stampcard → Customer (passive side) ----------
+
+        public Customer Customer { get; private set; }
+        public void SetCustomer(Customer customer)
+        {
+            if (Customer == customer)
+                return;
+
+            if (Customer != null)
+            {
+                var old = Customer;
+                Customer = null;
+                old.ForceRemoveStampcard(this);
+            }
+
+            Customer = customer;
+
+            if (customer != null)
+                customer.ForceAddStampcard(this);
+        }
+
+        public void RemoveCustomer()
+        {
+            if (Customer == null)
+                throw new InvalidOperationException("This stampcard has no customer to remove.");
+
+            var old = Customer;
+            Customer = null;
+            old.ForceRemoveStampcard(this);
+        }
+
+        
+        
+        
+        
+        
         //  Persistence 
         public static void Save(string filePath)
         {
@@ -100,3 +136,4 @@ namespace CinemaManagementSystem
         }
     }
 }
+
