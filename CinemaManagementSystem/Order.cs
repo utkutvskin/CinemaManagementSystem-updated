@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using CinemaManagementSystem.AssociationClasses;
 
 namespace CinemaManagementSystem
 {
@@ -35,6 +36,34 @@ namespace CinemaManagementSystem
             }
         }
 
+        
+        //attribute association Ticket
+        [XmlIgnore]
+        private readonly List<Ticket> _tickets = new();
+
+        [XmlIgnore]
+        public IReadOnlyCollection<Ticket> Tickets => _tickets.AsReadOnly();
+
+        internal void AddTicketInternal(Ticket ticket)
+        {
+            if (ticket == null)
+                throw new ArgumentException("Ticket cannot be null.");
+            _tickets.Add(ticket);
+        }
+
+        internal void RemoveTicketInternal(Ticket ticket)
+        {
+            if (ticket == null)
+                throw new ArgumentException("Ticket cannot be null.");
+            _tickets.Remove(ticket);
+        }
+
+        public Ticket AddTicket(Screening screening, Seat seat, double price)
+        {
+            return Ticket.CreateTicket(price, screening, this, seat);
+        }
+        
+        
 
         //Class extent
         private static List<Order> _orders = new List<Order>();

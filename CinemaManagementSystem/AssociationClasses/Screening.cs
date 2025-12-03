@@ -149,6 +149,29 @@ namespace CinemaManagementSystem.AssociationClasses;
             }
         }
         
+        //attribute association Ticket
+        [XmlIgnore]
+        private readonly List<Ticket> _tickets = new();
+
+        [XmlIgnore]
+        public IReadOnlyCollection<Ticket> Tickets => _tickets.AsReadOnly();
+
+        internal void AddTicketInternal(Ticket ticket)
+        {
+            if (ticket == null)
+                throw new ArgumentException("Ticket cannot be null.");
+            _tickets.Add(ticket);
+        }
+
+        internal void RemoveTicketInternal(Ticket ticket)
+        {
+            if (ticket != null)
+                _tickets.Remove(ticket);
+        }
+
+        
+        
+        
         //Persistence 
         public static void Save(string filePath)
         {
