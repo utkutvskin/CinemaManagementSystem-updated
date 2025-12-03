@@ -33,8 +33,17 @@ namespace CinemaManagementSystem
         }
 
         // Method from Diagram: manageSelectedScreens
-        // Not: Diyagramda parametre 'Screens' olarak geçiyor. 
-        // Projede 'Screens' adında bir class olmadığı için mantıken 'List<Hall>' kullandım.
+        public void ManageSelectedScreens(List<Hall> screens)
+        {
+            // Main logic will be implemented later
+            // For now, we just update the managed count based on the list size
+            if (screens != null)
+            {
+                NumberOfScreensManaged = screens.Count;
+            }
+        }
+    }
+}    
         public void ManageSelectedScreens(List<Hall> screens)
         {
             // Main logic will be implemented later
