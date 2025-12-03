@@ -20,7 +20,6 @@ namespace CinemaManagementSystem
             }
         }
 
-        // Empty Constructor for XML Serialization
         public Displayer() { }
 
         public Displayer(string name, string surname, DateTime birthDate,
@@ -32,19 +31,9 @@ namespace CinemaManagementSystem
 
         public void ManageSelectedScreens(List<Hall> screens)
         {
-        
             if (screens != null)
             {
-                NumberOfScreensManaged = screens.Count;
-            }
-        }
-    }
-}    
-        public void ManageSelectedScreens(List<Hall> screens)
-        {
-        
-            if (screens != null)
-            {
+              
                 NumberOfScreensManaged = screens.Count;
             }
         }
