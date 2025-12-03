@@ -128,6 +128,17 @@ namespace CinemaManagementSystem.AssociationClasses;
             return screening;
         }
 
+        //to make sure to set each hall for only one movie at that time
+        public static void ValidateNoConflict(Hall hall, DateTime date, TimeSpan time)
+        {
+            foreach (var screening in hall.Screenings)
+            {
+                if (screening.Date == date && screening.Hour == time)
+                    throw new InvalidOperationException("Hall already has a screening at this time.");
+            }
+        }
+
+
         //Delete association 
         public void Cancel()
         {
