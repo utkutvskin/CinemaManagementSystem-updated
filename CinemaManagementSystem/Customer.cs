@@ -98,6 +98,65 @@ namespace CinemaManagementSystem
             return $"{Name} {Surname}, Age: {Age}";
         }
 
+        // ---------- Qualified Association: Customer → Stampcard ----------
+
+        private Dictionary<DateTime, Stampcard> _stampcards = new Dictionary<DateTime, Stampcard>();
+        public IReadOnlyDictionary<DateTime, Stampcard> Stampcards => _stampcards;
+
+        public bool HasStampcard(DateTime date) => _stampcards.ContainsKey(date.Date);
+
+        public void AddStampcard(Stampcard card)
+        {
+            if (card == null)
+                throw new ArgumentNullException(nameof(card));
+
+            // Customer can hold only ONE active stampcard
+            if (_stampcards.Count >= 1)
+                throw new InvalidOperationException("Customer cannot have more than one active stampcard at a time.");
+
+            DateTime key = card.DateOfPurchase.Date;
+
+            if (_stampcards.ContainsKey(key))
+                throw new InvalidOperationException("A stampcard with this purchase date already exists for this customer.");
+
+            _stampcards[key] = card;
+
+            // Reverse connection
+            if (card.Customer != this)
+                card.SetCustomer(this);
+        }
+        internal void ForceAddStampcard(Stampcard card)
+        {
+            DateTime key = card.DateOfPurchase.Date;
+            _stampcards[key] = card;
+        }
+
+        
+        
+        public void RemoveStampcard(Stampcard card)
+        {
+            if (card == null)
+                throw new ArgumentNullException(nameof(card));
+
+            DateTime key = card.DateOfPurchase.Date;
+
+            if (!_stampcards.ContainsKey(key))
+                throw new InvalidOperationException("This stampcard is not associated with this customer.");
+
+            _stampcards.Remove(key);
+
+            if (card.Customer == this)
+                card.SetCustomer(null);
+        }
+
+        internal void ForceRemoveStampcard(Stampcard card)
+        {
+            DateTime key = card.DateOfPurchase.Date;
+            _stampcards.Remove(key);
+        }
+        
+        
+        
         // Persistence 
         public static void Save(string filePath)
         {
@@ -122,4 +181,5 @@ namespace CinemaManagementSystem
             }
         }
     }
+
 }
