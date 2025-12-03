@@ -7,7 +7,6 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Displayer : Employee
     {
-        // Attribute from Diagram: NumberOfScreensManaged
         private int _numberOfScreensManaged;
 
         public int NumberOfScreensManaged
@@ -24,7 +23,6 @@ namespace CinemaManagementSystem
         // Empty Constructor for XML Serialization
         public Displayer() { }
 
-        // Parameterized Constructor chaining to base (Employee)
         public Displayer(string name, string surname, DateTime birthDate,
             DateTime startDate, double salary)
             : base(name, surname, birthDate, startDate, salary)
@@ -32,11 +30,9 @@ namespace CinemaManagementSystem
             NumberOfScreensManaged = 0;
         }
 
-        // Method from Diagram: manageSelectedScreens
         public void ManageSelectedScreens(List<Hall> screens)
         {
-            // Main logic will be implemented later
-            // For now, we just update the managed count based on the list size
+        
             if (screens != null)
             {
                 NumberOfScreensManaged = screens.Count;
