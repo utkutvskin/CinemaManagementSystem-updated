@@ -18,7 +18,7 @@ obj/
 *.swp
 
 # JetBrains
-*Folder.DotSettings.useringsings.userttings.user
+*.DotSettings.user
 
 
 # User-specific files
