@@ -226,14 +226,21 @@ namespace CinemaManagementSystem
         }
         
         
-        public void AddDirector(string director)
-        {
-            if (string.IsNullOrWhiteSpace(director))
-                throw new ArgumentException("director cannot be empty");
-            if(_directors.Contains(director))
-                throw new ArgumentException("director already exists");
-            _directors.Add(director);
-        }
+    public void AddDirector(string director)
+{
+    if (ReleaseDate < DateTime.Now)
+    {
+        throw new InvalidOperationException("Cannot add a director to a movie that has already been released.");
+    }
+
+    if (string.IsNullOrWhiteSpace(director))
+        throw new ArgumentException("director cannot be empty");
+    
+    if(_directors.Contains(director))
+        throw new ArgumentException("director already exists");
+        
+    _directors.Add(director);
+}
 
         public void AddGenres(GenreEnum genre)
         {
@@ -279,3 +286,4 @@ namespace CinemaManagementSystem
         }
     }
 }
+
