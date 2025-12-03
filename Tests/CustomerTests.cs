@@ -110,6 +110,90 @@ namespace CinemaManagementSystem.Tests
             StringAssert.Contains("Alice Smith", text);
         }
 
+     [Test]
+public void AddStampcard_ShouldCreateReverseConnection()
+{
+    var customer = new Customer("John", "Walker", new DateTime(1990, 1, 1));
+    var card = new Stampcard();
+
+    customer.AddStampcard(card);
+
+    Assert.AreEqual(customer, card.Customer);
+    Assert.IsTrue(customer.Stampcards.ContainsKey(card.DateOfPurchase.Date));
+}
+
+[Test]
+public void AddStampcard_ShouldThrow_WhenCustomerAlreadyHasOne()
+{
+    var customer = new Customer("Emma", "Smith", new DateTime(1993, 2, 2));
+    var c1 = new Stampcard();
+    var c2 = new Stampcard();
+
+    customer.AddStampcard(c1);
+
+    Assert.Throws<InvalidOperationException>(() => customer.AddStampcard(c2));
+}
+
+[Test]
+public void AddStampcard_ShouldThrow_WhenDateOfPurchaseDuplicate()
+{
+    var customer = new Customer("David", "Brown", new DateTime(1988, 3, 3));
+    var date = new DateTime(2024, 1, 1);
+
+    var card1 = new Stampcard();
+    card1.DateOfPurchase = date;
+
+    var card2 = new Stampcard();
+    card2.DateOfPurchase = date;
+
+    customer.AddStampcard(card1);
+
+    Assert.Throws<InvalidOperationException>(() => customer.AddStampcard(card2));
+}
+
+[Test]
+public void RemoveStampcard_ShouldRemoveReverseConnection()
+{
+    var customer = new Customer("Sophia", "Johnson", new DateTime(1991, 4, 4));
+    var card = new Stampcard();
+
+    customer.AddStampcard(card);
+    customer.RemoveStampcard(card);
+
+    Assert.IsNull(card.Customer);
+    Assert.IsFalse(customer.Stampcards.ContainsKey(card.DateOfPurchase.Date));
+}
+
+[Test]
+public void RemoveStampcard_ShouldThrow_WhenCardNotAssociated()
+{
+    var customer = new Customer("Michael", "Green", new DateTime(1995, 6, 6));
+    var card = new Stampcard();
+
+    Assert.Throws<InvalidOperationException>(() => customer.RemoveStampcard(card));
+}
+
+[Test]
+public void SetCustomer_ShouldMoveCardToAnotherCustomer()
+{
+    var c1 = new Customer("Liam", "Taylor", new DateTime(1980, 7, 7));
+    var c2 = new Customer("Olivia", "Turner", new DateTime(1985, 8, 8));
+
+    var card = new Stampcard();
+    c1.AddStampcard(card);
+
+    card.SetCustomer(c2);
+
+    Assert.AreEqual(c2, card.Customer);
+    Assert.IsFalse(c1.Stampcards.ContainsKey(card.DateOfPurchase.Date));
+    Assert.IsTrue(c2.Stampcards.ContainsKey(card.DateOfPurchase.Date));
+}
+
+        
+       
+
+
+        
         [Test]
         public void SaveAndLoad_ShouldPersistCustomers()
         {
@@ -131,4 +215,5 @@ namespace CinemaManagementSystem.Tests
             Assert.That(Customer.Customers[1].Name, Is.EqualTo("Bob"), "Second customer name should be 'Bob'");
         }
     }
+
 }
