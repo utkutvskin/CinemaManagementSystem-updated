@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
+using CinemaManagementSystem.ContractTypeForEmployee;
 using CinemaManagementSystem.Employees;
 
 namespace CinemaManagementSystem
@@ -25,6 +26,17 @@ namespace CinemaManagementSystem
         private DateTime? _endDate;
         private double _salary;
 
+        private ContractType _contractType;
+        public ContractType ContractType
+        {
+            get => _contractType;
+            set
+            {
+                if(value == null)
+                    throw new ArgumentException("Contract type cannot be null");
+                _contractType = value;
+            }
+        }
 
         public string Name
         {
