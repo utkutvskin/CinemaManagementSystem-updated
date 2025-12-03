@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ARFCihPfT/4=",
+  "dgSpecHash": "ph48xSXNv14=",
   "success": true,
-  "projectFilePath": "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/Tests/CinemaManagementSystem.Tests.csproj",
+  "projectFilePath": "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/Tests/CinemaManagementSystem.Tests.csproj",
   "expectedPackageFiles": [
     "/Users/dasha.okse/.nuget/packages/coverlet.collector/6.0.0/coverlet.collector.6.0.0.nupkg.sha512",
     "/Users/dasha.okse/.nuget/packages/microsoft.codecoverage/17.8.0/microsoft.codecoverage.17.8.0.nupkg.sha512",

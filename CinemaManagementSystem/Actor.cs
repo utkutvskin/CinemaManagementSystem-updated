@@ -39,15 +39,15 @@ namespace CinemaManagementSystem
             }
         }
 
-        public string Gender
+        public GenderEnum Gender
         {
-            get => _gender.ToString();
+            get => _gender;
             set
             {
-                if (string.IsNullOrWhiteSpace(value) || !Enum.IsDefined(typeof(GenderEnum), value))
-                    throw new ArgumentException("Gender not correct");
+                if (value == null)
+                    throw new ArgumentException("Gender can't be null");
                 
-                _gender = Enum.Parse<GenderEnum>(value);
+                _gender =value;
             }
         }
 
@@ -74,7 +74,61 @@ namespace CinemaManagementSystem
                 return age;
             }
         }
+        
+        
+        //Basic Association 
+        [XmlIgnore]
+        private readonly HashSet<Movie> _movies = new HashSet<Movie>();
 
+        [XmlIgnore]
+        public IReadOnlyCollection<Movie> Movies => _movies;
+        
+        public void AddMovie(Movie movie)
+        {
+            if (movie == null)
+                throw new ArgumentException("Movie cannot be null.");
+
+            if (_movies.Contains(movie))
+                throw new InvalidOperationException("Movie is already in actor's filmography.");
+
+            _movies.Add(movie);
+
+            
+            if (!movie.Actors.Contains(this))
+            {
+                movie.AddActorInternal(this);
+            }
+        }
+
+        public void RemoveMovie(Movie movie)
+        {
+            if (movie == null)
+                throw new ArgumentException("Movie cannot be null.");
+
+            if (!_movies.Contains(movie))
+                throw new InvalidOperationException("Movie is not in actor's filmography.");
+
+            _movies.Remove(movie);
+
+            
+            if (movie.Actors.Contains(this))
+            {
+                movie.RemoveActorInternal(this);
+            }
+        }
+        
+        internal void AddMovieInternal(Movie movie)
+        {
+            _movies.Add(movie);
+        }
+
+        internal void RemoveMovieInternal(Movie movie)
+        {
+            _movies.Remove(movie);
+        }
+
+
+        
         //Class extent
         private static List<Actor> _actors = new List<Actor>();
         public static IReadOnlyList<Actor> Actors => _actors.AsReadOnly();
@@ -87,16 +141,12 @@ namespace CinemaManagementSystem
             _actors.Add(actor);
         }
 
-        //for testing
-        public static void ClearAllActors()
-        {
-            _actors.Clear();
-        }
+        
 
         //Constructors
         public Actor() { }
 
-        public Actor(string name, string surname, string gender, DateTime birthDate)
+        public Actor(string name, string surname, GenderEnum gender, DateTime birthDate)
         {
 
             Name = name;
@@ -107,12 +157,27 @@ namespace CinemaManagementSystem
             AddActor(this);
         }
 
+        
+        
         //Methods 
         public override string ToString()
         {
             return $"{Name} {Surname}, {Gender}, Age: {Age}";
         }
 
+        public void Delete()
+        {
+            foreach (var movie in new List<Movie>(_movies))
+            {
+                movie.RemoveActorInternal(this);
+            }
+            _movies.Clear();
+
+            _actors.Remove(this);
+        }
+        
+        
+        
         //Persistence 
         public static void Save(string filePath)
         {
@@ -126,16 +191,12 @@ namespace CinemaManagementSystem
 
         public static bool Load(string filePath)
         {
-            StreamReader file;
-            try
-            {
-                file = File.OpenText(filePath);
-            }
-            catch (FileNotFoundException)
+            if (!File.Exists(filePath))
             {
                 _actors.Clear();
                 return false;
             }
+
 
             XmlSerializer serializer = new XmlSerializer(typeof(List<Actor>));
             using (XmlTextReader reader = new XmlTextReader(filePath))
@@ -144,12 +205,7 @@ namespace CinemaManagementSystem
                 {
                     _actors = (List<Actor>)serializer.Deserialize(reader);
                 }
-                catch (InvalidCastException)
-                {
-                    _actors.Clear();
-                    return false;
-                }
-                catch (Exception)
+                catch 
                 {
                     _actors.Clear();
                     return false;
@@ -157,6 +213,15 @@ namespace CinemaManagementSystem
             }
 
             return true;
+        }
+        
+        //for testing
+        public static void ClearAllActors()
+        {
+            foreach (var actor in new List<Actor>(_actors))
+            {
+                actor.Delete();
+            }
         }
     }
 }

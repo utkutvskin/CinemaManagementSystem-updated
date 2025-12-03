@@ -13,7 +13,7 @@ namespace CinemaManagementSystem.Tests
         [SetUp]
         public void SetUp()
         {
-            Seat.ClearAllSeats();
+            Seat.ClearAllSeatsForTesting();
         }
 
         [Test]
@@ -133,7 +133,7 @@ namespace CinemaManagementSystem.Tests
 
             Seat.Save(filePath);
 
-            Seat.ClearAllSeats();
+            Seat.ClearAllSeatsForTesting();
 
             Seat.Load(filePath);
 

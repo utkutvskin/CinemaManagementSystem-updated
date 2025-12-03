@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Enums;
 
 namespace CinemaManagementSystem
@@ -15,9 +16,11 @@ namespace CinemaManagementSystem
 
         // Multi-value attributes
         private List<string> _directors;
-        private List<string> _genres;
+        private List<GenreEnum> _genres;
+        
         private ScreeningEnum _screeningType;
         private int _duration;
+        private DateTime _releaseDate;
         
         public string Title
         {
@@ -43,7 +46,7 @@ namespace CinemaManagementSystem
             }
         }
 
-        public List<string> Genres
+        public List<GenreEnum> Genres
         {
             get => _genres;
             set
@@ -70,6 +73,99 @@ namespace CinemaManagementSystem
                 _duration = value;
             }
         }
+
+        public DateTime ReleaseDate
+        {
+            get => _releaseDate;
+            set => _releaseDate = value;
+        }
+        
+        
+        //Basic association
+        [XmlIgnore]
+        private readonly HashSet<Actor> _actors = new HashSet<Actor>();
+
+        [XmlIgnore]
+        public IReadOnlyCollection<Actor> Actors => _actors;
+        
+        
+        public void AddActor(Actor actor)
+        {
+            if (actor == null)
+                throw new ArgumentException("Actor cannot be null.");
+
+            if (_actors.Contains(actor))
+                throw new InvalidOperationException("Actor is already assigned to this movie.");
+
+            _actors.Add(actor);
+
+            
+            if (!actor.Movies.Contains(this))
+            {
+                actor.AddMovieInternal(this);
+            }
+        }
+
+        public void RemoveActor(Actor actor)
+        {
+            if (actor == null)
+                throw new ArgumentException("Actor cannot be null.");
+
+            if (!_actors.Contains(actor))
+                throw new InvalidOperationException("Actor is not assigned to this movie.");
+
+            _actors.Remove(actor);
+
+            
+            if (actor.Movies.Contains(this))
+            {
+                actor.RemoveMovieInternal(this);
+            }
+        }
+
+
+        internal void AddActorInternal(Actor actor)
+        {
+            
+            _actors.Add(actor);
+        }
+
+        internal void RemoveActorInternal(Actor actor)
+        {
+            _actors.Remove(actor);
+        }
+
+        
+        
+        //Attribute association
+        [XmlIgnore]
+        private readonly List<Screening> _screenings = new();
+
+        [XmlIgnore]
+        public IReadOnlyCollection<Screening> Screenings => _screenings;
+
+        public Screening ScheduleScreening(Hall hall, DateTime date, TimeSpan hour, string language)
+        {
+            if (hall == null)
+                throw new ArgumentException("Hall cannot be null.");
+
+            return Screening.Create(this, hall, date, hour, language);
+        }
+
+        
+        internal void AddScreeningInternal(Screening screening)
+        {
+            if (screening != null)
+                _screenings.Add(screening);
+        }
+
+        internal void RemoveScreeningInternal(Screening screening)
+        {
+            if (screening != null)
+                _screenings.Remove(screening);
+        }
+
+        
         
 
         //  Class extent
@@ -84,10 +180,12 @@ namespace CinemaManagementSystem
             _movies.Add(movie);
         }
 
+        
+        
         //  Constructors 
         public Movie() { }
 
-        public Movie(string title, List<string> directors, List<string> genres, ScreeningEnum screeningType, int duration)
+        public Movie(string title, List<string> directors, List<GenreEnum> genres, ScreeningEnum screeningType, int duration, DateTime releaseDate)
         {
 
             Title = title;
@@ -95,6 +193,7 @@ namespace CinemaManagementSystem
             Genres = genres;
             ScreeningType = screeningType;
             Duration = duration;
+            ReleaseDate = releaseDate;
 
             AddMovie(this);
         }
@@ -108,6 +207,43 @@ namespace CinemaManagementSystem
             return $"{Title} ({genres}) directed by {directors}, {ScreeningType}, {Duration} min";
         }
 
+        public void Delete()
+        {
+            foreach (var actor in new List<Actor>(_actors))
+            {
+                actor.RemoveMovieInternal(this);
+            }
+            _actors.Clear();
+
+            foreach (var screening in new List<Screening>(_screenings))
+            {
+                screening.Cancel(); 
+            }
+            _screenings.Clear();
+
+            _movies.Remove(this);
+        }
+        
+        
+        public void AddDirector(string director)
+        {
+            if (string.IsNullOrWhiteSpace(director))
+                throw new ArgumentException("director cannot be empty");
+            if(_directors.Contains(director))
+                throw new ArgumentException("director already exists");
+            _directors.Add(director);
+        }
+
+        public void AddGenres(GenreEnum genre)
+        {
+            if (_genres.Contains(genre))
+                throw new ArgumentException("genre already exists");
+            _genres.Add(genre);
+        }
+
+        
+        
+        
         //  Persistence 
         public static void Save(string filePath)
         {
@@ -132,10 +268,13 @@ namespace CinemaManagementSystem
             }
         }
 
-
+        //For tests 
         public static void ClearExtent()
         {
-            _movies.Clear();
+            foreach (var movie in new List<Movie>(_movies))
+            {
+                movie.Delete();
+            }
         }
     }
 }

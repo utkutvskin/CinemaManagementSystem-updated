@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using CinemaManagementSystem;  
+using CinemaManagementSystem;
+using CinemaManagementSystem.Enums;
 
 namespace CinemaManagementSystem.Tests
 {
@@ -21,7 +22,7 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void NameSetterValidation_ShouldThrowException()
         {
-            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            Actor actor = new Actor("John", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10));
             Assert.Throws<ArgumentException>(() =>
                 actor.Name = " "
             );
@@ -29,29 +30,20 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void SurnameSetterValidation_ShouldSetSurnameSuccessfully()
         {
-            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            Actor actor = new Actor("John", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10));
             actor.Surname = "Smith";
             Assert.That(actor.Surname, Is.EqualTo("Smith"));
         }
         
         //Test Gender setter
-        [Test]
-        public void GenderSetterValidation_ShouldThrowException()
-        {
-            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
-            Assert.Throws<ArgumentException>(() =>
-                actor.Gender = "Dog"
-            );
-
-        }
         
         [Test]
         public void GenderSetterValidation_ShouldSetGenderSuccessfully()
         {
-            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
-            actor.Gender = "Other";
+            Actor actor = new Actor("John", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10));
+            actor.Gender = GenderEnum.Other;
             
-            Assert.That(actor.Gender, Is.EqualTo("Other"));
+            Assert.That(actor.Gender, Is.EqualTo(GenderEnum.Other));
 
         }
         
@@ -59,7 +51,7 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void BirthDaySetterValidation_ShouldThrowException()
         {
-            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            Actor actor = new Actor("John", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10));
             Assert.Throws<ArgumentException>(() =>
                 actor.BirthDate = new DateTime(2030, 3,4)
             );
@@ -69,7 +61,7 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void BirthDateSetterValidation_ShouldSetBirthDateSuccessfully()
         {
-            Actor actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            Actor actor = new Actor("John", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10));
             actor.BirthDate = new DateTime(2005, 3, 4);
             Assert.That(actor.BirthDate, Is.EqualTo(new DateTime(2005, 3, 4)));
         }
@@ -78,11 +70,11 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void Constructor_ValidData_ShouldCreateActor()
         {
-            var actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            var actor = new Actor("John", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10));
 
             Assert.AreEqual("John", actor.Name);
             Assert.AreEqual("Doe", actor.Surname);
-            Assert.AreEqual("Men", actor.Gender);
+            Assert.AreEqual(GenderEnum.Men, actor.Gender);
             Assert.AreEqual(1990, actor.BirthDate.Year);
         }
 
@@ -90,7 +82,7 @@ namespace CinemaManagementSystem.Tests
         public void Constructor_EmptyName_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Actor("", "Doe", "Men", new DateTime(1990, 5, 10))
+                new Actor("", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10))
             );
         }
 
@@ -98,7 +90,7 @@ namespace CinemaManagementSystem.Tests
         public void Constructor_EmptySurname_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Actor("John", "", "Men", new DateTime(1990, 5, 10))
+                new Actor("John", "", GenderEnum.Men, new DateTime(1990, 5, 10))
             );
         }
 
@@ -106,7 +98,7 @@ namespace CinemaManagementSystem.Tests
         public void Constructor_IncorectBirthDate_ShouldThrowException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Actor("John", "Doe", "Men", DateTime.Now.AddYears(2))
+                new Actor("John", "Doe", GenderEnum.Men, DateTime.Now.AddYears(2))
             );
         }
 
@@ -114,7 +106,7 @@ namespace CinemaManagementSystem.Tests
         public void Age_ShouldCalculateCorrectly()
         {
             var birthDate = new DateTime(2000, 1, 1);
-            var actor = new Actor("Jane", "Smith", "Female", birthDate);
+            var actor = new Actor("Jane", "Smith", GenderEnum.Men, birthDate);
 
             int expectedAge = DateTime.Now.Year - 2000;
             if (DateTime.Now.DayOfYear < birthDate.DayOfYear)
@@ -126,10 +118,10 @@ namespace CinemaManagementSystem.Tests
         [Test]
         public void ToString_ShouldReturnFormattedString()
         {
-            var actor = new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
+            var actor = new Actor("John", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10));
             string text = actor.ToString();
             StringAssert.Contains("John Doe", text);
-            StringAssert.Contains("Men", text);
+            StringAssert.Contains(GenderEnum.Men.ToString(), text);
         }
 
         [Test]
@@ -138,8 +130,8 @@ namespace CinemaManagementSystem.Tests
             if (File.Exists(filePath))
                 File.Delete(filePath);
             
-            new Actor("John", "Doe", "Men", new DateTime(1990, 5, 10));
-            new Actor("Jane", "Smith", "Female", new DateTime(1985, 3, 20));
+            new Actor("John", "Doe", GenderEnum.Men, new DateTime(1990, 5, 10));
+            new Actor("Jane", "Smith", GenderEnum.Female, new DateTime(1985, 3, 20));
 
             Actor.Save(filePath);
             Assert.That(File.Exists(filePath));

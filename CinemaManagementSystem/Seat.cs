@@ -20,11 +20,6 @@ namespace CinemaManagementSystem
                 if (value <= 0)
                     throw new ArgumentException("Seat number must be positive.");
                 
-                foreach (var seat in _seats)
-                {
-                    if (seat.Number == value && seat.Row == _row)
-                        throw new ArgumentException($"Seat {_row}{value} already exists.");
-                }
                 _number = value;
             }
         }
@@ -36,16 +31,39 @@ namespace CinemaManagementSystem
             {
                 if (!char.IsLetter(value))
                     throw new ArgumentException("Row must be a letter (A-Z).");
-
-                foreach (var seat in _seats)
-                {
-                    if (seat.Number == _number && seat.Row == char.ToUpper(value))
-                        throw new ArgumentException($"Seat {char.ToUpper(value)}{_number} already exists.");
-                }
                 
                 _row = char.ToUpper(value);
             }
         }
+        
+        
+        
+        //composition association
+        [XmlIgnore]           
+        private Hall _hall;
+
+        [XmlIgnore]
+        public Hall Hall => _hall;
+
+        internal void SetHall(Hall hall)
+        {
+            if (hall == null)
+                throw new ArgumentException("Hall cannot be null for a seat.");
+
+            
+            if (_hall != null && _hall != hall)
+                throw new InvalidOperationException("Seat is already assigned to another hall.");
+
+            _hall = hall;
+        }
+        
+        internal static void RemoveFromExtent(Seat seat)
+        {
+            _seats.Remove(seat);
+        }
+
+        
+        
 
         //  Class extent 
         private static List<Seat> _seats = new List<Seat>();
@@ -58,16 +76,13 @@ namespace CinemaManagementSystem
 
             _seats.Add(seat);
         }
-
         
-        public static void ClearAllSeats()
-        {
-            _seats.Clear();
-        }
+        
 
         //  Constructors 
         public Seat() { }
 
+        //it should be private, but for SeatTests we make it public
         public Seat(int number, char row)
         {
 
@@ -76,13 +91,25 @@ namespace CinemaManagementSystem
 
             AddSeat(this);
         }
+        
+        public Seat(int number, char row, Hall hall) : this(number, row)
+        {
+            SetHall(hall);
+            
+            hall.AddSeatInternal(this);
+        }
 
+        
+        
         //  Methods 
         public override string ToString()
         {
             return $"Seat {Row}{Number}";
         }
 
+        
+        
+        
         //  Persistence 
         public static void Save(string filePath)
         {
@@ -104,6 +131,15 @@ namespace CinemaManagementSystem
                 var loaded = (List<Seat>)serializer.Deserialize(reader);
                 _seats = loaded ?? new List<Seat>();
             }
+        }
+        
+        //for tests only
+        public static void ClearAllSeatsForTesting()
+        {
+            foreach (var hall in Hall.Halls)
+                hall.InternalClearSeats();
+
+            _seats.Clear();
         }
     }
 }

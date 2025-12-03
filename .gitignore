@@ -5,6 +5,21 @@
 
 # dotenv files
 .env
+# Rider
+.idea/
+*.sln.iml
+
+# Build outputs
+bin/
+obj/
+
+# User files
+*.user
+*.swp
+
+# JetBrains
+*.DotSettings.user
+
 
 # User-specific files
 *.rsuser

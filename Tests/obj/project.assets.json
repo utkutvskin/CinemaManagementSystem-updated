@@ -1003,11 +1003,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/Tests/CinemaManagementSystem.Tests.csproj",
+      "projectUniqueName": "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/Tests/CinemaManagementSystem.Tests.csproj",
       "projectName": "CinemaManagementSystem.Tests",
-      "projectPath": "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/Tests/CinemaManagementSystem.Tests.csproj",
+      "projectPath": "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/Tests/CinemaManagementSystem.Tests.csproj",
       "packagesPath": "/Users/dasha.okse/.nuget/packages/",
-      "outputPath": "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/Tests/obj/",
+      "outputPath": "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/Tests/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/dasha.okse/.nuget/NuGet/NuGet.Config"
@@ -1022,8 +1022,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj": {
-              "projectPath": "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj"
+            "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj": {
+              "projectPath": "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj"
             }
           }
         }

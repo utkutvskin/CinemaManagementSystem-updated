@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj": {}
+    "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj": {}
   },
   "projects": {
-    "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj": {
+    "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj",
+        "projectUniqueName": "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj",
         "projectName": "CinemaManagementSystem",
-        "projectPath": "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj",
+        "projectPath": "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/CinemaManagementSystem/CinemaManagementSystem.csproj",
         "packagesPath": "/Users/dasha.okse/.nuget/packages/",
-        "outputPath": "/Users/dasha.okse/RiderProjects/CinemaManagementSystem-updated/CinemaManagementSystem/obj/",
+        "outputPath": "/Users/dasha.okse/RiderProjects/CinemaProject/CinemaManagementSystem-updated/CinemaManagementSystem/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/dasha.okse/.nuget/NuGet/NuGet.Config"
