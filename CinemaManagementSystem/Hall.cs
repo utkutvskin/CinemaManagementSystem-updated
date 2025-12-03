@@ -7,7 +7,7 @@ using CinemaManagementSystem.AssociationClasses;
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Hall
+    public class Hall : CleanableArea
     {
         //  Attributes 
         private int _number;
@@ -140,13 +140,13 @@ namespace CinemaManagementSystem
 
         internal void AddScreeningInternal(Screening screening)
         {
-            if (screening != null)
+            if (screening == null) throw new ArgumentException("Screening cannot be null.");
                 _screenings.Add(screening);
         }
 
         internal void RemoveScreeningInternal(Screening screening)
         {
-            if (screening != null)
+            if (screening == null) throw new ArgumentException("Screening cannot be null.");
                 _screenings.Remove(screening);
         }
 
@@ -175,18 +175,19 @@ namespace CinemaManagementSystem
         //  Constructors 
         public Hall() { } 
 
-        public Hall(int number)
+        public Hall(int number) : base($"Hall {number}", TimeSpan.FromHours(3))
         {
 
             Number = number;
             AddHall(this);
         }
 
-        public Hall(int number, Floor floor) : this(number)
+        public Hall(int number, Floor floor ) :this(number)
         {
             SetFloor(floor);
             
             floor.AddHallInternal(this);
+            RegisterArea(this);
         }
 
         
@@ -200,6 +201,7 @@ namespace CinemaManagementSystem
         //for tests
         public static void ClearExtent()
         {
+            //_halls.Clear();
             foreach (var hall in _halls)
             {
                 hall.DeleteHall();

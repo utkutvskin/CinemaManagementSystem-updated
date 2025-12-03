@@ -8,7 +8,7 @@ using CinemaManagementSystem.Enums;
 namespace CinemaManagementSystem;
 
 [Serializable]
-public class Floor
+public class Floor :CleanableArea
 {
     // Attributes
     private int _number;
@@ -174,10 +174,11 @@ public class Floor
     //constructor
     public Floor() { }
 
-    public Floor(int number)
+    public Floor(int number) :base($"Floor {number}", TimeSpan.FromHours(4))
     {
         Number = number;
         AddFloor(this);
+        RegisterArea(this);
     }
     
     

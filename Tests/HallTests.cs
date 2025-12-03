@@ -23,7 +23,7 @@ namespace CinemaManagementSystem.Tests
         {
             Hall hall = new Hall(10);
             Assert.Throws<ArgumentException>(() =>
-                hall.Number = 120
+                hall.Number = -9
             );
         }
         

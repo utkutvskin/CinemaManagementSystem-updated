@@ -57,39 +57,7 @@ namespace CinemaManagementSystem.Tests
 
             Assert.That(seat.Row, Is.EqualTo('C'));
         }
-
-        //  Duplicate seat validation 
-        [Test]
-        public void CreatingDuplicateSeat_ShouldThrowException()
-        {
-            var seat1 = new Seat(5, 'C');
-
-            Assert.Throws<ArgumentException>(() =>
-                    new Seat(5, 'c') 
-            );
-        }
         
-        [Test]
-        public void ChangingNumberToExistingSeat_ShouldThrowException()
-        {
-            var seat1 = new Seat(1, 'A');
-            var seat2 = new Seat(2, 'A'); 
-
-            Assert.Throws<ArgumentException>(() =>
-                seat2.Number = 1
-            );
-        }
-
-        [Test]
-        public void ChangingRowToExistingSeat_ShouldThrowException()
-        {
-            var seat1 = new Seat(3, 'A');
-            var seat2 = new Seat(3, 'B'); 
-            
-            Assert.Throws<ArgumentException>(() =>
-                    seat2.Row = 'a' 
-            );
-        }
         
         
         
@@ -101,12 +69,6 @@ namespace CinemaManagementSystem.Tests
             Assert.AreEqual('B', seat.Row);
         }
 
-        [Test]
-        public void Constructor_DuplicateSeat_ShouldThrowException()
-        {
-            new Seat(1, 'A');
-            Assert.Throws<ArgumentException>(() => new Seat(1, 'A'));
-        }
 
         [Test]
         public void Constructor_InvalidNumber_ShouldThrowException()

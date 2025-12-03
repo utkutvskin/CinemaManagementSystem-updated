@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
+using CinemaManagementSystem.Employees;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
+    [XmlInclude(typeof(Cleaner))]
+    [XmlInclude(typeof(Manager))]
+    [XmlInclude(typeof(BuffetSeller))]
+    [XmlInclude(typeof(Receptionist))]
     public class Employee
     {
         [XmlIgnore]
@@ -156,14 +161,23 @@ namespace CinemaManagementSystem
         }
 
         //  Persistence 
+        private static XmlSerializer GetSerializer()
+        {
+            return new XmlSerializer(
+                typeof(List<Employee>),
+                new Type[]
+                {
+                    typeof(Cleaner),
+                    typeof(Manager),
+                    typeof(BuffetSeller),
+                    typeof(Receptionist)
+                });
+        }
         public static void Save(string filePath)
         {
-            StreamWriter sw = File.CreateText(filePath);
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Employee>));
-            using (XmlTextWriter writer = new XmlTextWriter(sw))
-            {
-                serializer.Serialize(writer, _employees);
-            }
+            var serializer = GetSerializer();
+            using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+            serializer.Serialize(fs, _employees);
         }
 
         public static void Load(string filePath)
@@ -171,7 +185,7 @@ namespace CinemaManagementSystem
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("Employee file not found.");
 
-            XmlSerializer serializer = new XmlSerializer(typeof(List<Employee>));
+            XmlSerializer serializer = GetSerializer();
             using (StreamReader reader = new StreamReader(filePath))
             {
                 var loaded = (List<Employee>)serializer.Deserialize(reader);

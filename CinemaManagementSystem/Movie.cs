@@ -156,14 +156,14 @@ namespace CinemaManagementSystem
         
         internal void AddScreeningInternal(Screening screening)
         {
-            if (screening != null)
-                _screenings.Add(screening);
+            if (screening == null) throw new ArgumentException("Screening cannot be null.");
+            _screenings.Add(screening);
         }
 
         internal void RemoveScreeningInternal(Screening screening)
         {
-            if (screening != null)
-                _screenings.Remove(screening);
+            if (screening == null) throw new ArgumentException("Screening cannot be null.");
+            _screenings.Remove(screening);
         }
 
         

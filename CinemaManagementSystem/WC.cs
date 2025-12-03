@@ -8,7 +8,7 @@ using CinemaManagementSystem.Enums;
 namespace CinemaManagementSystem;
 
 [Serializable]
-public class WC
+public class WC :CleanableArea
 {
     private WCTypeEnum _type;
 
@@ -79,11 +79,16 @@ public class WC
         AddWC(this);
     }
 
-    public WC(WCTypeEnum type, Floor floor) : this(type)
+    public WC(WCTypeEnum type, Floor floor) : base($"WC {type} in floor {floor.Number}", TimeSpan.FromHours(1))
     {
+        Type = type;
+
+        AddWC(this);
         SetFloor(floor);
         
         floor.AddWCInternal(this);
+        
+        RegisterArea(this);
     }
     
     
