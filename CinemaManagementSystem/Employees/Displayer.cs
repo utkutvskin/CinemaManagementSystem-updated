@@ -7,34 +7,84 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Displayer : Employee
     {
-        private int _numberOfScreensManaged;
+        
+        [XmlIgnore]
+        private List<Hall> _managedHalls = new List<Hall>();
 
+        [XmlIgnore]
+        public IReadOnlyList<Hall> ManagedHalls => _managedHalls.AsReadOnly();
+
+        // Attribute: NumberOfScreensManaged
         public int NumberOfScreensManaged
         {
-            get => _numberOfScreensManaged;
-            set
+            get => _managedHalls.Count;
+            // Set bloğu kaldırıldı çünkü liste üzerinden yönetiliyor.
+        }
+        
+        public void AddHall(Hall hall)
+        {
+            if (hall == null)
+                throw new ArgumentException("Hall cannot be null.");
+
+            if (_managedHalls.Contains(hall))
+                throw new InvalidOperationException("This hall is already managed by this displayer.");
+
+            if (hall.ManagedBy != null && hall.ManagedBy != this)
             {
-                if (value < 0)
-                    throw new ArgumentException("Number of screens managed cannot be negative.");
-                _numberOfScreensManaged = value;
+                throw new InvalidOperationException($"Hall {hall.Number} is already managed by another displayer.");
+            }
+
+            _managedHalls.Add(hall);
+            
+            hall.SetDisplayerInternal(this);
+        }
+
+        public void RemoveHall(Hall hall)
+        {
+            if (hall == null) throw new ArgumentException("Hall cannot be null.");
+
+            if (_managedHalls.Contains(hall))
+            {
+                _managedHalls.Remove(hall);
+                
+                hall.RemoveDisplayerInternal();
             }
         }
 
+        internal void RemoveHallInternal(Hall hall)
+        {
+            if (_managedHalls.Contains(hall))
+            {
+                _managedHalls.Remove(hall);
+            }
+        }
+
+        // Constructors
         public Displayer() { }
 
-        public Displayer(string name, string surname, DateTime birthDate,
-            DateTime startDate, double salary)
+        public Displayer(string name, string surname, DateTime birthDate, DateTime startDate, double salary)
             : base(name, surname, birthDate, startDate, salary)
         {
-            NumberOfScreensManaged = 0;
         }
 
         public void ManageSelectedScreens(List<Hall> screens)
         {
-            if (screens != null)
+            if (screens == null) return;
+
+            foreach (var hall in screens)
             {
-              
-                NumberOfScreensManaged = screens.Count;
+                if (!_managedHalls.Contains(hall))
+                {
+                    try 
+                    {
+                        AddHall(hall);
+                    }
+                    catch 
+                    {
+                        // Hata olursa (örn: başkası yönetiyorsa) bu salonu atla
+                        continue; 
+                    }
+                }
             }
         }
     }
