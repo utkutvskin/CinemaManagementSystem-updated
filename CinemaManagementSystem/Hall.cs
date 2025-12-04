@@ -11,8 +11,6 @@ namespace CinemaManagementSystem
     public class Hall : CleanableArea, IExtent<Hall>
     {
         //  Attributes 
-        private int _number;
-        
         public int Number
         {
             get => _number;
@@ -24,30 +22,70 @@ namespace CinemaManagementSystem
             }
         }
 
-        [XmlIgnore]
-        public static readonly int MaxCapacity = 100;
-        
-        
-        
-        //composition association (Seat)
-        [XmlIgnore]
-        private readonly HashSet<Seat> _seats = new HashSet<Seat>();
+        [XmlIgnore] public static readonly int MaxCapacity = 100;
 
-        [XmlIgnore]
-        public IReadOnlyCollection<Seat> Seats => _seats;
-        
-        public Seat AddSeat(int number, char row)
+
+    
+    // Bidirectional Displayer association
+    [XmlIgnore] 
+    private Displayer _managedBy;
+    
+    [XmlIgnore] 
+    public Displayer ManagedBy => _managedBy;
+    
+    internal void SetDisplayerInternal(Displayer newDisplayer)
+    {
+       
+        if (_managedBy != null && _managedBy != newDisplayer)
         {
-            var newSeat = new Seat(number, char.ToUpper(row), this);
+            _managedBy.RemoveHallInternal(this);
+        }
+    
+       
+        _managedBy = newDisplayer;
+    
+        
+        if (newDisplayer != null)
+        {
+            newDisplayer.AddHallInternal(this);
+        }
+    }
+    
+    internal void RemoveDisplayerInternal()
+    {
+        if (_managedBy != null)
+        {
             
+            var oldDisplayer = _managedBy;
+    
+           
+            _managedBy = null;
+    
+           
+            oldDisplayer.RemoveHallInternal(this);
+        }
+    }
+    
+
+// bidiretional composition association (hall - seat )
+      
+        [XmlIgnore] private readonly HashSet<Seat> _seats = new HashSet<Seat>();
+
+        [XmlIgnore] public IReadOnlyCollection<Seat> Seats => _seats;
+
+        public Seat AddSeat(int number, char row)
+
+        
+            var newSeat = new Seat(number, char.ToUpper(row), this);
+
             return newSeat;
         }
-        
+
         internal void AddSeatInternal(Seat seat)
         {
             if (seat == null)
                 throw new ArgumentException("Seat cannot be null.");
-            
+
             if (_seats.Count >= MaxCapacity)
                 throw new InvalidOperationException(
                     $"Hall {Number} has reached its maximum capacity of {MaxCapacity} seats.");
@@ -57,6 +95,7 @@ namespace CinemaManagementSystem
                 if (s.Number == seat.Number && s.Row == seat.Row)
                     throw new ArgumentException($"Seat {seat.Row}{seat.Number} already exists in this hall.");
             }
+
             _seats.Add(seat);
         }
 
@@ -70,8 +109,8 @@ namespace CinemaManagementSystem
                 throw new InvalidOperationException("Seat does not belong to this hall.");
 
             _seats.Remove(seat);
-            
-            Seat.RemoveFromExtent(seat);  
+
+            Seat.RemoveFromExtent(seat);
         }
 
         public void DeleteHall()
@@ -80,56 +119,56 @@ namespace CinemaManagementSystem
             {
                 screening.Cancel();
             }
+
             _screenings.Clear();
-            
+
             foreach (var seat in _seats)
             {
                 Seat.RemoveFromExtent(seat);
             }
 
             _seats.Clear();
-            
+
             if (_floor != null)
             {
-                _floor.InternalRemoveHall(this); 
+                _floor.InternalRemoveHall(this);
+            }
+
+            if (_managedBy != null)
+            {
+                _managedBy.RemoveHallInternal(this);
             }
 
             RemoveFromExtent(this);
         }
 
+
         internal void InternalClearSeats()
         {
             _seats.Clear();
         }
-        
-        
-        //composition association (Floor)
-        [XmlIgnore]           
-        private Floor _floor;
 
-        [XmlIgnore]
-        public Floor FLoor => _floor;
+        [XmlIgnore] private Floor _floor;
+
+        [XmlIgnore] public Floor FLoor => _floor;
 
         internal void SetFloor(Floor floor)
         {
             if (floor == null)
                 throw new ArgumentException("floor cannot be null for a hall.");
 
-            
+
             if (_floor != null && _floor != floor)
                 throw new InvalidOperationException("Hall is already assigned to another floor.");
 
             _floor = floor;
         }
-        
-        
-        
-        //attribute association
-        [XmlIgnore]
-        private readonly List<Screening> _screenings = new();
 
-        [XmlIgnore]
-        public IReadOnlyCollection<Screening> Screenings => _screenings;
+
+        //attribute association
+        [XmlIgnore] private readonly List<Screening> _screenings = new();
+
+        [XmlIgnore] public IReadOnlyCollection<Screening> Screenings => _screenings;
 
         public Screening AddScreening(Movie movie, DateTime date, TimeSpan hour, string language)
         {
@@ -142,22 +181,20 @@ namespace CinemaManagementSystem
         internal void AddScreeningInternal(Screening screening)
         {
             if (screening == null) throw new ArgumentException("Screening cannot be null.");
-                _screenings.Add(screening);
+            _screenings.Add(screening);
         }
 
         internal void RemoveScreeningInternal(Screening screening)
         {
             if (screening == null) throw new ArgumentException("Screening cannot be null.");
-                _screenings.Remove(screening);
+            _screenings.Remove(screening);
         }
 
-        
-        
-        
+
         //  Class extent 
         private static List<Hall> _halls = new List<Hall>();
         public static IReadOnlyList<Hall> Halls => _halls.AsReadOnly();
-        
+
         private static void AddHall(Hall hall)
         {
             if (hall == null)
@@ -165,34 +202,33 @@ namespace CinemaManagementSystem
 
             _halls.Add(hall);
         }
-        
+
         internal static void RemoveFromExtent(Hall hall)
         {
             _halls.Remove(hall);
         }
 
-        
-        
+
         //  Constructors 
-        public Hall() { } 
+        public Hall()
+        {
+        }
 
         public Hall(int number) : base($"Hall {number}", TimeSpan.FromHours(3))
         {
-
             Number = number;
             AddHall(this);
         }
 
-        public Hall(int number, Floor floor ) :this(number)
+        public Hall(int number, Floor floor) : this(number)
         {
             SetFloor(floor);
-            
+
             floor.AddHallInternal(this);
             RegisterArea(this);
         }
 
-        
-        
+
         //  Methods 
         public override string ToString()
         {
@@ -209,8 +245,7 @@ namespace CinemaManagementSystem
             }
         }
 
-        
-        
+
         //  Persistence 
         public static void Save(string filePath)
         {
@@ -246,3 +281,4 @@ namespace CinemaManagementSystem
         }
     }
 }
+

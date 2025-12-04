@@ -150,61 +150,7 @@ namespace CinemaManagementSystem
             _employees.Clear();
         }
 
-        // ---------- Reflexive Association: Manager - Employee ----------
-        [XmlIgnore]
-        private Employee _manager;
-        
-        [XmlIgnore]
-        private readonly HashSet<Employee> _directReports = new();
-        
-        [XmlIgnore]
-        public Employee Manager => _manager;
-        
-        [XmlIgnore]
-        public IReadOnlyCollection<Employee> DirectReports => _directReports;
-        
-        // Assign manager to employee
-        public void AssignManager(Employee manager)
-        {
-            if (manager == null)
-                throw new ArgumentNullException(nameof(manager), "Manager cannot be null.");
-        
-            if (manager == this)
-                throw new InvalidOperationException("An employee cannot manage themselves!");
-        
-            if (_manager == manager)
-                return;
-        
-            _manager?.RemoveEmployeeInternal(this); // remove from old manager if exists
-        
-            _manager = manager;
-        
-            manager.AddEmployeeInternal(this); // reverse
-        }
-        
-        public void RemoveManager()
-        {
-            if (_manager == null)
-                throw new InvalidOperationException("This employee does not have a manager!");
-        
-            var oldManager = _manager;
-            _manager = null;
-        
-            oldManager.RemoveEmployeeInternal(this);
-        }
-        
-        internal void AddEmployeeInternal(Employee employee)
-        {
-            if (!_directReports.Contains(employee))
-                _directReports.Add(employee);
-        }
-        
-        internal void RemoveEmployeeInternal(Employee employee)
-        {
-            if (_directReports.Contains(employee))
-                _directReports.Remove(employee);
-        }
-
+      
 
         //  Constructors 
         public Employee() { } 
@@ -272,3 +218,4 @@ namespace CinemaManagementSystem
     }
 
 }
+
