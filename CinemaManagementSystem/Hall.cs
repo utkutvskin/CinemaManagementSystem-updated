@@ -11,6 +11,8 @@ namespace CinemaManagementSystem
     public class Hall : CleanableArea, IExtent<Hall>
     {
         //  Attributes 
+        private int _number;
+
         public int Number
         {
             get => _number;
@@ -25,61 +27,64 @@ namespace CinemaManagementSystem
         [XmlIgnore] public static readonly int MaxCapacity = 100;
 
 
-    
-    // Bidirectional Displayer association
-    [XmlIgnore] 
-    private Displayer _managedBy;
-    
-    [XmlIgnore] 
-    public Displayer ManagedBy => _managedBy;
-    
-    internal void SetDisplayerInternal(Displayer newDisplayer)
-    {
-       
-        if (_managedBy != null && _managedBy != newDisplayer)
-        {
-            _managedBy.RemoveHallInternal(this);
-        }
-    
-       
-        _managedBy = newDisplayer;
-    
-        
-        if (newDisplayer != null)
-        {
-            newDisplayer.AddHallInternal(this);
-        }
-    }
-    
-    internal void RemoveDisplayerInternal()
-    {
-        if (_managedBy != null)
-        {
-            
-            var oldDisplayer = _managedBy;
-    
-           
-            _managedBy = null;
-    
-           
-            oldDisplayer.RemoveHallInternal(this);
-        }
-    }
-    
 
-// bidiretional composition association (hall - seat )
-      
+
+
+
+
+        // Bidirectional Displayer association
+        [XmlIgnore] private Displayer _managedBy;
+
+        [XmlIgnore] public Displayer ManagedBy => _managedBy;
+
+        internal void SetDisplayerInternal(Displayer newDisplayer)
+        {
+
+            if (_managedBy != null && _managedBy != newDisplayer)
+            {
+                _managedBy.RemoveHallInternal(this);
+            }
+
+
+            _managedBy = newDisplayer;
+
+
+            if (newDisplayer != null)
+            {
+                newDisplayer.AddHallInternal(this);
+            }
+        }
+
+        internal void RemoveDisplayerInternal()
+        {
+            if (_managedBy != null)
+            {
+
+                var oldDisplayer = _managedBy;
+
+
+                _managedBy = null;
+
+
+                oldDisplayer.RemoveHallInternal(this);
+            }
+        }
+
+
+        // bidiretional composition association (hall - seat )
+
         [XmlIgnore] private readonly HashSet<Seat> _seats = new HashSet<Seat>();
 
         [XmlIgnore] public IReadOnlyCollection<Seat> Seats => _seats;
 
         public Seat AddSeat(int number, char row)
+        {
 
-        
             var newSeat = new Seat(number, char.ToUpper(row), this);
 
             return newSeat;
         }
+
 
         internal void AddSeatInternal(Seat seat)
         {
@@ -150,7 +155,10 @@ namespace CinemaManagementSystem
 
         [XmlIgnore] private Floor _floor;
 
-        [XmlIgnore] public Floor FLoor => _floor;
+        [XmlIgnore]
+        public Floor FLoor =>
+
+            _floor;
 
         internal void SetFloor(Floor floor)
         {
@@ -214,13 +222,15 @@ namespace CinemaManagementSystem
         {
         }
 
-        public Hall(int number) : base($"Hall {number}", TimeSpan.FromHours(3))
+        public Hall(int number) :
+            base($"Hall {number}", TimeSpan.FromHours(3))
         {
             Number = number;
             AddHall(this);
         }
 
-        public Hall(int number, Floor floor) : this(number)
+        public Hall(int number, Floor floor) :
+            this(number)
         {
             SetFloor(floor);
 
@@ -280,5 +290,5 @@ namespace CinemaManagementSystem
             _halls = newExtent ?? new List<Hall>();
         }
     }
-}
 
+}
