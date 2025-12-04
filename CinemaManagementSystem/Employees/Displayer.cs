@@ -8,55 +8,56 @@ namespace CinemaManagementSystem
     public class Displayer : Employee
     {
         
-        [XmlIgnore]
-        private List<Hall> _managedHalls = new List<Hall>();
-
+              [XmlIgnore]
+        private readonly List<Hall> _managedHalls = new List<Hall>();
+        
         [XmlIgnore]
         public IReadOnlyList<Hall> ManagedHalls => _managedHalls.AsReadOnly();
-
-        // Attribute: NumberOfScreensManaged
-        public int NumberOfScreensManaged
-        {
-            get => _managedHalls.Count;
-            // Set bloğu kaldırıldı çünkü liste üzerinden yönetiliyor.
-        }
+        
+        public int NumberOfScreensManaged => _managedHalls.Count;
         
         public void AddHall(Hall hall)
         {
             if (hall == null)
                 throw new ArgumentException("Hall cannot be null.");
-
+        
             if (_managedHalls.Contains(hall))
-                throw new InvalidOperationException("This hall is already managed by this displayer.");
-
+                return;
+        
             if (hall.ManagedBy != null && hall.ManagedBy != this)
-            {
-                throw new InvalidOperationException($"Hall {hall.Number} is already managed by another displayer.");
-            }
-
+                throw new InvalidOperationException(
+                    $"Hall {hall.Number} is already managed by another displayer.");
+        
             _managedHalls.Add(hall);
-            
-            hall.SetDisplayerInternal(this);
+        
+            if (hall.ManagedBy != this)
+                hall.SetDisplayerInternal(this);
         }
-
+        
         public void RemoveHall(Hall hall)
         {
-            if (hall == null) throw new ArgumentException("Hall cannot be null.");
-
+            if (hall == null)
+                throw new ArgumentException("Hall cannot be null.");
+        
             if (_managedHalls.Contains(hall))
             {
                 _managedHalls.Remove(hall);
-                
-                hall.RemoveDisplayerInternal();
+        
+                if (hall.ManagedBy == this)
+                    hall.RemoveDisplayerInternal();
             }
         }
-
+        
+        internal void AddHallInternal(Hall hall)
+        {
+            if (!_managedHalls.Contains(hall))
+                _managedHalls.Add(hall);
+        }
+        
         internal void RemoveHallInternal(Hall hall)
         {
             if (_managedHalls.Contains(hall))
-            {
                 _managedHalls.Remove(hall);
-            }
         }
 
         // Constructors
