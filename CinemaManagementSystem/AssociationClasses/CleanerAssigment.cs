@@ -1,14 +1,13 @@
 using System.Xml;
 using CinemaManagementSystem.Employees;
-
-namespace CinemaManagementSystem.AssociationClasses;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
-
+namespace CinemaManagementSystem.AssociationClasses;
 [Serializable]
-public class CleanerAssignment
+public class CleanerAssignment :IExtent<CleanerAssignment>
 {
     private DateTime _date;
     private TimeSpan _time;
@@ -61,7 +60,7 @@ public class CleanerAssignment
 
     
     //constructors
-    private CleanerAssignment() { } 
+    public CleanerAssignment() { } 
 
     private CleanerAssignment(Cleaner cleaner, CleanableArea area, DateTime date, TimeSpan time)
     {
@@ -141,5 +140,12 @@ public class CleanerAssignment
         }
 
         return true;
+    }
+
+    public List<CleanerAssignment> GetExtent() => _assignments;
+
+    public void ReplaceExtent(List<CleanerAssignment> newExtent)
+    {
+        _assignments = newExtent ?? new List<CleanerAssignment>();
     }
 }

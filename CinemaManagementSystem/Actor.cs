@@ -5,11 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Actor
+    public class Actor :IExtent<Actor>
     {
         //Attributes
         private string _name;
@@ -223,6 +224,13 @@ namespace CinemaManagementSystem
             {
                 actor.Delete();
             }
+        }
+
+        public List<Actor> GetExtent() => _actors;
+
+        public void ReplaceExtent(List<Actor> newExtent)
+        {
+            _actors = newExtent ?? new List<Actor>();
         }
     }
 }

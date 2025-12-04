@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
 using System.Xml.Serialization;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class CardInfo
+    public class CardInfo 
     {
         private string _name;
         private string _number;
@@ -75,5 +76,6 @@ namespace CinemaManagementSystem
         {
             return $"Card Holder: {Name}, Number: {Number}, Expires: {ExpiryDate:MM/yyyy}";
         }
+
     }
 }

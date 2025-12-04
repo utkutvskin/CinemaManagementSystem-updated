@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Seat
+    public class Seat : IExtent<Seat>
     {
         //  Attributes 
         private int _number;
@@ -140,6 +141,13 @@ namespace CinemaManagementSystem
                 hall.InternalClearSeats();
 
             _seats.Clear();
+        }
+
+        public List<Seat> GetExtent() => _seats;
+
+        public void ReplaceExtent(List<Seat> newExtent)
+        {
+            _seats = newExtent ?? new List<Seat>();
         }
     }
 }

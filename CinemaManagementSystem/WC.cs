@@ -4,11 +4,12 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem;
 
 [Serializable]
-public class WC :CleanableArea
+public class WC :CleanableArea, IExtent<WC>
 {
     private WCTypeEnum _type;
 
@@ -126,5 +127,12 @@ public class WC :CleanableArea
         }
 
         return true;
+    }
+
+    public List<WC> GetExtent() => _wcs;
+
+    public void ReplaceExtent(List<WC> newExtent)
+    {
+        _wcs = newExtent ?? new List<WC>();
     }
 }

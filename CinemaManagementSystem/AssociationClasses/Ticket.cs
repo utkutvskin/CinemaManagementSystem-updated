@@ -1,10 +1,11 @@
 using System.Xml;
 using System.Xml.Serialization;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem.AssociationClasses;
 
 [Serializable]
-public class Ticket
+public class Ticket :IExtent<Ticket>
 {
     private double _price;
 
@@ -139,5 +140,11 @@ public class Ticket
         }
 
         return true;
+    }
+
+    public List<Ticket> GetExtent() => _tickets;
+    public void ReplaceExtent(List<Ticket> newExtent)
+    {
+       _tickets = newExtent ?? new List<Ticket>();
     }
 }

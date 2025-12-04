@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Stampcard
+    public class Stampcard :IExtent<Stampcard>
     {
         //  Attributes 
         private DateTime _dateOfPurchase;
@@ -133,6 +134,13 @@ namespace CinemaManagementSystem
             {
                 _stampcards = (List<Stampcard>)serializer.Deserialize(fs);
             }
+        }
+
+        public List<Stampcard> GetExtent() => _stampcards;
+
+        public void ReplaceExtent(List<Stampcard> newExtent)
+        {
+            _stampcards = newExtent ?? new List<Stampcard>();
         }
     }
 }

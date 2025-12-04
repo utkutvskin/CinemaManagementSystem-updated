@@ -5,6 +5,7 @@ using System.IO;
 using System.Xml;
 using CinemaManagementSystem.ContractTypeForEmployee;
 using CinemaManagementSystem.Employees;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
@@ -13,7 +14,7 @@ namespace CinemaManagementSystem
     [XmlInclude(typeof(Manager))]
     [XmlInclude(typeof(BuffetSeller))]
     [XmlInclude(typeof(Receptionist))]
-    public class Employee
+    public class Employee :IExtent<Employee>
     {
         [XmlIgnore]
         private static double _minSalary = 3000;
@@ -259,6 +260,14 @@ namespace CinemaManagementSystem
                 var loaded = (List<Employee>)serializer.Deserialize(reader);
                 _employees = loaded ?? new List<Employee>();
             }
+        }
+
+
+        public List<Employee> GetExtent() => _employees;
+
+        public void ReplaceExtent(List<Employee> newExtent)
+        {
+            _employees = newExtent ?? new List<Employee>();
         }
     }
 

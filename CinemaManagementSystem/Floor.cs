@@ -4,11 +4,12 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem;
 
 [Serializable]
-public class Floor :CleanableArea
+public class Floor :CleanableArea, IExtent<Floor>
 {
     // Attributes
     private int _number;
@@ -221,5 +222,12 @@ public class Floor :CleanableArea
         }
 
         return true;
+    }
+
+    public List<Floor> GetExtent() => _floors;
+
+    public void ReplaceExtent(List<Floor> newExtent)
+    {
+        _floors = newExtent ?? new List<Floor>();
     }
 }

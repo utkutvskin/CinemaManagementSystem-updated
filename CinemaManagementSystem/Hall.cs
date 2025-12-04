@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Hall : CleanableArea
+    public class Hall : CleanableArea, IExtent<Hall>
     {
         //  Attributes 
         private int _number;
@@ -235,6 +236,13 @@ namespace CinemaManagementSystem
                 _halls.Clear();
                 _halls.AddRange(loaded);
             }
+        }
+
+        public List<Hall> GetExtent() => _halls;
+
+        public void ReplaceExtent(List<Hall> newExtent)
+        {
+            _halls = newExtent ?? new List<Hall>();
         }
     }
 }

@@ -6,11 +6,12 @@ using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Movie
+    public class Movie :IExtent<Movie>
     {
         //  Attributes 
         private string _title;
@@ -286,6 +287,13 @@ namespace CinemaManagementSystem
             {
                 movie.Delete();
             }
+        }
+        
+        public List<Movie> GetExtent() => _movies;
+
+        public void ReplaceExtent(List<Movie> newExtent)
+        {
+            _movies = newExtent ?? new List<Movie>();
         }
     }
 }

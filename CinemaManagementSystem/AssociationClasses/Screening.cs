@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem.AssociationClasses;
 
 [Serializable]
-    public class Screening
+    public class Screening :IExtent<Screening>
     {
         
         private DateTime _date;
@@ -217,5 +218,12 @@ namespace CinemaManagementSystem.AssociationClasses;
             }
 
             return true;
+        }
+
+        public List<Screening> GetExtent() => _screenings;
+
+        public void ReplaceExtent(List<Screening> newExtent)
+        {
+            _screenings = newExtent ?? new List<Screening>();
         }
     }

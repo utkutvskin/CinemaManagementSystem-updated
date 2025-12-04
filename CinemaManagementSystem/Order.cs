@@ -4,11 +4,12 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Order
+    public class Order :IExtent<Order>
     {
         //Attributes
         private CardInfo _cardInfo;
@@ -63,6 +64,44 @@ namespace CinemaManagementSystem
             return Ticket.CreateTicket(price, screening, this, seat);
         }
         
+        
+        //association customer
+        [XmlIgnore]
+        private Customer _customer;
+
+        [XmlIgnore]
+        public Customer Customer
+        {
+            get => _customer;
+            set => _customer = value;
+        }
+
+        public void AddCustomer(Customer customer)
+        {
+            if (Customer == customer)
+                return;
+            
+            if (Customer != null)
+            {
+                var old = Customer;
+                Customer = null;
+                old.ForceRemoveOrder(this);
+            }
+
+            Customer = customer;
+
+            if (customer != null)
+            {
+                customer.ForceAddOrder(this);
+            }
+        }
+        public static Order Create(Customer customer, CardInfo cardInfo)
+        {
+            if (customer == null) throw new ArgumentNullException(nameof(customer));
+            var order = new Order(cardInfo);
+            order.AddCustomer(customer);    
+            return order;
+        }
         
 
         //Class extent
@@ -143,6 +182,13 @@ namespace CinemaManagementSystem
             }
 
             return true;
+        }
+
+        public List<Order> GetExtent() => _orders;
+
+        public void ReplaceExtent(List<Order> newExtent)
+        {
+            _orders = newExtent ?? new List<Order>();
         }
     }
 }

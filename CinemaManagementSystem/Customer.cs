@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
+using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Customer
+    public class Customer: IExtent<Customer>
     {
         //Attributes
         private string _name;
@@ -97,6 +98,50 @@ namespace CinemaManagementSystem
         {
             return $"{Name} {Surname}, Age: {Age}";
         }
+        
+        
+        //Order association
+        [XmlIgnore]
+        private readonly List<Order> _orders = new();
+        [XmlIgnore]
+        public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
+        
+
+        public void AddOrder(Order order)
+        {
+            if (order == null) throw new ArgumentNullException(nameof(order));
+            if (_orders.Contains(order)) return;
+
+            _orders.Add(order);
+
+            if (order.Customer != this)
+            {
+                order.AddCustomer(this);
+            }
+        }
+
+        public void RemoveOrder(Order order)
+        {
+            if (order == null) throw new ArgumentNullException(nameof(order));
+            if (!_orders.Remove(order)) return;
+
+            if (order.Customer == this)
+            {
+                order.AddCustomer(null);
+            }
+        }
+        
+        internal void ForceAddOrder(Order order)
+        {
+            if (!_orders.Contains(order))
+                _orders.Add(order);
+        }
+
+        internal void ForceRemoveOrder(Order order)
+        {
+            _orders.Remove(order);
+        }
+    
 
         // ---------- Qualified Association: Customer → Stampcard ----------
 
@@ -179,6 +224,13 @@ namespace CinemaManagementSystem
                 var loaded = (List<Customer>)serializer.Deserialize(reader);
                 _customers = loaded ?? new List<Customer>();
             }
+        }
+
+        public List<Customer> GetExtent() => _customers;
+
+        public void ReplaceExtent(List<Customer> newExtent)
+        {
+            _customers = newExtent ?? new List<Customer>();
         }
     }
 
