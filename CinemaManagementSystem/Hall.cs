@@ -23,22 +23,51 @@ namespace CinemaManagementSystem
 
         [XmlIgnore] public static readonly int MaxCapacity = 100;
 
-// Displayer association
-        [XmlIgnore] private Displayer _managedBy;
 
-        [XmlIgnore] public Displayer ManagedBy => _managedBy;
-
-        internal void SetDisplayerInternal(Displayer displayer)
+    
+    // Bidirectional Displayer association
+    [XmlIgnore] 
+    private Displayer _managedBy;
+    
+    [XmlIgnore] 
+    public Displayer ManagedBy => _managedBy;
+    
+    internal void SetDisplayerInternal(Displayer newDisplayer)
+    {
+       
+        if (_managedBy != null && _managedBy != newDisplayer)
         {
-            _managedBy = displayer;
+            _managedBy.RemoveHallInternal(this);
         }
-
-        internal void RemoveDisplayerInternal()
+    
+       
+        _managedBy = newDisplayer;
+    
+        
+        if (newDisplayer != null)
         {
+            newDisplayer.AddHallInternal(this);
+        }
+    }
+    
+    internal void RemoveDisplayerInternal()
+    {
+        if (_managedBy != null)
+        {
+            
+            var oldDisplayer = _managedBy;
+    
+           
             _managedBy = null;
+    
+           
+            oldDisplayer.RemoveHallInternal(this);
         }
+    }
+    
 
-
+// bidiretional composition association (hall - seat )
+      
         [XmlIgnore] private readonly HashSet<Seat> _seats = new HashSet<Seat>();
 
         [XmlIgnore] public IReadOnlyCollection<Seat> Seats => _seats;
@@ -244,3 +273,4 @@ namespace CinemaManagementSystem
         }
     }
 }
+
