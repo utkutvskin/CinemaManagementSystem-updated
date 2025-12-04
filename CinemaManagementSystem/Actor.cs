@@ -12,6 +12,7 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Actor :IExtent<Actor>
     {
+        private static int _nextId = 1;
         //Attributes
         private string _name;
         private string _surname;
@@ -77,8 +78,11 @@ namespace CinemaManagementSystem
             }
         }
         
+        [XmlAttribute]
+        public int Id { get; set; }
         
-        //Basic Association 
+        
+        //Basic Association Movie
         [XmlIgnore]
         private readonly HashSet<Movie> _movies = new HashSet<Movie>();
 
@@ -90,16 +94,8 @@ namespace CinemaManagementSystem
             if (movie == null)
                 throw new ArgumentException("Movie cannot be null.");
 
-            if (_movies.Contains(movie))
-                throw new InvalidOperationException("Movie is already in actor's filmography.");
-
-            _movies.Add(movie);
-
+            movie.AddActor(this);
             
-            if (!movie.Actors.Contains(this))
-            {
-                movie.AddActorInternal(this);
-            }
         }
 
         public void RemoveMovie(Movie movie)
@@ -107,16 +103,8 @@ namespace CinemaManagementSystem
             if (movie == null)
                 throw new ArgumentException("Movie cannot be null.");
 
-            if (!_movies.Contains(movie))
-                throw new InvalidOperationException("Movie is not in actor's filmography.");
-
-            _movies.Remove(movie);
-
-            
-            if (movie.Actors.Contains(this))
-            {
-                movie.RemoveActorInternal(this);
-            }
+            movie.RemoveActor(this);
+       
         }
         
         internal void AddMovieInternal(Movie movie)
@@ -150,6 +138,7 @@ namespace CinemaManagementSystem
 
         public Actor(string name, string surname, GenderEnum gender, DateTime birthDate)
         {
+            Id = _nextId++;
 
             Name = name;
             Surname = surname;

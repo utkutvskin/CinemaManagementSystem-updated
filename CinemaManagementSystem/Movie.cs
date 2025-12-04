@@ -13,6 +13,7 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Movie :IExtent<Movie>
     {
+        private static int _nextId = 1;
         //  Attributes 
         private string _title;
 
@@ -79,18 +80,27 @@ namespace CinemaManagementSystem
         public DateTime ReleaseDate
         {
             get => _releaseDate;
-            set => _releaseDate = value;
+            set
+            {
+                if(value > DateTime.Now.AddYears(1))
+                    throw new ArgumentException("Release date cannot be in deep future.");
+            }
         }
         
         
-        //Basic association
+        [XmlAttribute]
+        public int Id { get; set; }
+        
+        
+        //Basic association Actor
         [XmlIgnore]
         private readonly HashSet<Actor> _actors = new HashSet<Actor>();
 
         [XmlIgnore]
         public IReadOnlyCollection<Actor> Actors => _actors;
-        
-        
+
+        public List<int> ActorIds { get; private set; } = new();
+
         public void AddActor(Actor actor)
         {
             if (actor == null)
@@ -100,6 +110,9 @@ namespace CinemaManagementSystem
                 throw new InvalidOperationException("Actor is already assigned to this movie.");
 
             _actors.Add(actor);
+
+            if (!ActorIds.Contains(actor.Id))
+                ActorIds.Add(actor.Id);
 
             
             if (!actor.Movies.Contains(this))
@@ -120,6 +133,7 @@ namespace CinemaManagementSystem
                 throw new InvalidOperationException("A movie must have at least one actor!"); // Multiplicity 1..*
         
             _actors.Remove(actor);
+            ActorIds.Remove(actor.Id);
         
             if (actor.Movies.Contains(this))
             {
@@ -133,13 +147,22 @@ namespace CinemaManagementSystem
         {
             
             _actors.Add(actor);
+            if (!ActorIds.Contains(actor.Id))
+                ActorIds.Add(actor.Id);
         }
 
         internal void RemoveActorInternal(Actor actor)
         {
             _actors.Remove(actor);
+            ActorIds.Remove(actor.Id);
         }
 
+        internal void ClearActorsInternal()
+        {
+            _actors.Clear();
+        }
+        
+        
         
         
         //Attribute association
@@ -189,10 +212,12 @@ namespace CinemaManagementSystem
         
         //  Constructors 
         public Movie() { }
+        
 
         public Movie(string title, List<string> directors, List<GenreEnum> genres, ScreeningEnum screeningType, int duration, DateTime releaseDate)
         {
 
+            Id = _nextId++;
             Title = title;
             Directors = directors;
             Genres = genres;
@@ -201,6 +226,26 @@ namespace CinemaManagementSystem
             ReleaseDate = releaseDate;
 
             AddMovie(this);
+            
+        }
+        
+        public Movie(string title, List<string> directors, List<GenreEnum> genres, ScreeningEnum screeningType, int duration, DateTime releaseDate, List<Actor> actors)
+        {
+
+            Id = _nextId++;
+            Title = title;
+            Directors = directors;
+            Genres = genres;
+            ScreeningType = screeningType;
+            Duration = duration;
+            ReleaseDate = releaseDate;
+
+            AddMovie(this);
+
+            foreach (var actor in actors)
+            {
+                AddActor(actor);
+            }
         }
 
       
@@ -228,14 +273,10 @@ namespace CinemaManagementSystem
 
             _movies.Remove(this);
         }
+
         
-        
-            public void AddDirector(string director)
+        public void AddDirector(string director)
         {
-            if (ReleaseDate < DateTime.Now)
-            {
-                throw new InvalidOperationException("Cannot add a director to a movie that has already been released.");
-            }
 
             if (string.IsNullOrWhiteSpace(director))
                 throw new ArgumentException("director cannot be empty");
@@ -277,6 +318,26 @@ namespace CinemaManagementSystem
             {
                 var loaded = (List<Movie>)serializer.Deserialize(fs);
                 _movies = loaded ?? new List<Movie>();
+            }
+            
+            
+            var actorById = Actor.Actors.ToDictionary(a => a.Id);
+
+            foreach (var movie in _movies)
+            {
+                movie.ClearActorsInternal();
+
+                if (movie.ActorIds == null)
+                    continue;
+
+                foreach (var actorId in movie.ActorIds)
+                {
+                    if (actorById.TryGetValue(actorId, out var actor))
+                    {
+                        movie.AddActorInternal(actor);
+                        actor.AddMovieInternal(movie);
+                    }
+                }
             }
         }
 

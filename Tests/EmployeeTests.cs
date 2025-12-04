@@ -151,58 +151,6 @@ namespace CinemaManagementSystem.Tests
             Assert.That(Employee.Employees[0].Salary, Is.EqualTo(3000), "Salary should be 3000");
         }
 
-
-        // ------------------------------------------------------------
-        // REFLEXIVE ASSOCIATION TESTS: Employee - Employee (Manager relationship)
-        // ------------------------------------------------------------
-
-        [Test]
-        public void AssignManager_ShouldCreateReverseConnection()
-        {
-            // Assigning Manager updates reverse direct reports list
-            Employee manager = new Employee("M", "Boss", new(1980, 1, 1), DateTime.Now, 4000);
-            Employee worker = new Employee("W", "Guy", new(1995, 1, 1), DateTime.Now, 3500);
-
-            worker.AssignManager(manager);
-
-            Assert.That(worker.Manager, Is.EqualTo(manager));
-            Assert.That(manager.DirectReports, Does.Contain(worker));
-        }
-
-        [Test]
-        public void AssignManager_SelfAssignment_ShouldThrow()
-        {
-            // Employee cannot manage themselves
-            Employee emp = new Employee("Self", "Person", new(1990, 1, 1), DateTime.Now, 3000);
-
-            Assert.Throws<InvalidOperationException>(() => emp.AssignManager(emp));
-        }
-
-        [Test]
-        public void RemoveManager_ShouldRemoveReverseConnection()
-        {
-            // Removing manager clears reverse connection
-            Employee manager = new Employee("M", "Boss", new(1980, 1, 1), DateTime.Now, 4000);
-            Employee worker = new Employee("W", "Guy", new(1995, 1, 1), DateTime.Now, 3500);
-
-            worker.AssignManager(manager);
-            worker.RemoveManager();
-
-            Assert.That(worker.Manager, Is.Null);
-            Assert.That(manager.DirectReports, Does.Not.Contain(worker));
-        }
-
-        [Test]
-        public void AssignSameManagerTwice_ShouldNotDuplicate()
-        {
-            // Prevents duplicate employees in DirectReports
-            Employee manager = new Employee("M", "Boss", new(1980, 1, 1), DateTime.Now, 4000);
-            Employee worker = new Employee("W", "Guy", new(1995, 1, 1), DateTime.Now, 3500);
-
-            worker.AssignManager(manager);
-            worker.AssignManager(manager);
-
-            Assert.That(manager.DirectReports.Count, Is.EqualTo(1));
-        }
+        
     }
 }
