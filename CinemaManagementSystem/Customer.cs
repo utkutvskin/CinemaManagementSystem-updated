@@ -155,7 +155,7 @@ namespace CinemaManagementSystem
             if (card == null)
                 throw new ArgumentNullException(nameof(card));
 
-            // Customer can hold only ONE active stampcard
+          
             if (_stampcards.Count >= 1)
                 throw new InvalidOperationException("Customer cannot have more than one active stampcard at a time.");
 
@@ -164,13 +164,16 @@ namespace CinemaManagementSystem
             if (_stampcards.ContainsKey(key))
                 throw new InvalidOperationException("A stampcard with this purchase date already exists for this customer.");
 
-            _stampcards[key] = card;
+           
+            AddStampcardInternal(card);
 
-            // Reverse connection
+        
             if (card.Customer != this)
                 card.SetCustomer(this);
         }
-        internal void ForceAddStampcard(Stampcard card)
+
+      
+        internal void AddStampcardInternal(Stampcard card)
         {
             DateTime key = card.DateOfPurchase.Date;
             _stampcards[key] = card;
@@ -188,17 +191,20 @@ namespace CinemaManagementSystem
             if (!_stampcards.ContainsKey(key))
                 throw new InvalidOperationException("This stampcard is not associated with this customer.");
 
-            _stampcards.Remove(key);
+           
+            RemoveStampcardInternal(card);
 
             if (card.Customer == this)
                 card.SetCustomer(null);
         }
 
-        internal void ForceRemoveStampcard(Stampcard card)
+       
+        internal void RemoveStampcardInternal(Stampcard card)
         {
             DateTime key = card.DateOfPurchase.Date;
             _stampcards.Remove(key);
         }
+        
         
         
         
@@ -235,3 +241,4 @@ namespace CinemaManagementSystem
     }
 
 }
+
