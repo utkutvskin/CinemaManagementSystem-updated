@@ -90,14 +90,14 @@ namespace CinemaManagementSystem
             {
                 var old = Customer;
                 Customer = null;
-                // use internal helper to avoid recursion and to respect Customer-side validations
+              
                 old.RemoveStampcardInternal(this);
             }
 
             Customer = customer;
 
             if (customer != null)
-                // use internal helper to avoid recursion
+             
                 customer.AddStampcardInternal(this);
         }
 
@@ -146,5 +146,6 @@ namespace CinemaManagementSystem
         }
     }
 }
+
 
 
