@@ -194,6 +194,139 @@ namespace CinemaManagementSystem
         }
 
         
+         
+         // Reflexive association: sequels / prequels
+        [XmlIgnore]
+        private readonly HashSet<Movie> _sequels = new HashSet<Movie>();
+        [XmlIgnore]
+        public IReadOnlyCollection<Movie> Sequels => _sequels;
+        public List<int> SequelIds { get; private set; } = new();
+
+        [XmlIgnore]
+        private readonly HashSet<Movie> _prequels = new HashSet<Movie>();
+        [XmlIgnore]
+        public IReadOnlyCollection<Movie> Prequels => _prequels;
+        public List<int> PrequelIds { get; private set; } = new();
+
+        // Public API to manage sequels (keeps both sides consistent)
+        public void AddSequel(Movie sequel)
+        {
+            if (sequel == null) throw new ArgumentException("Sequel cannot be null.");
+            if (sequel == this) throw new InvalidOperationException("A movie cannot be a sequel to itself.");
+            if (_sequels.Contains(sequel)) throw new InvalidOperationException("Sequel already assigned to this movie.");
+
+            _sequels.Add(sequel);
+            if (!SequelIds.Contains(sequel.Id)) SequelIds.Add(sequel.Id);
+
+            // Add this as prequel on the sequel side if not already present
+            if (!sequel._prequels.Contains(this))
+            {
+                sequel.AddPrequelInternal(this);
+            }
+        }
+
+        public void RemoveSequel(Movie sequel)
+        {
+            if (sequel == null) throw new ArgumentException("Sequel cannot be null.");
+            if (!_sequels.Contains(sequel)) throw new InvalidOperationException("Sequel is not assigned to this movie.");
+
+            _sequels.Remove(sequel);
+            SequelIds.Remove(sequel.Id);
+
+            if (sequel._prequels.Contains(this))
+            {
+                sequel.RemovePrequelInternal(this);
+            }
+        }
+
+        internal void AddSequelInternal(Movie sequel)
+        {
+            _sequels.Add(sequel);
+            if (!SequelIds.Contains(sequel.Id)) SequelIds.Add(sequel.Id);
+        }
+
+        internal void RemoveSequelInternal(Movie sequel)
+        {
+            _sequels.Remove(sequel);
+            SequelIds.Remove(sequel.Id);
+        }
+
+        internal void ClearSequelsInternal()
+        {
+            _sequels.Clear();
+            SequelIds.Clear();
+        }
+
+        // Prequel side (usually maintained by AddSequel, but public methods provided too)
+        public void AddPrequel(Movie prequel)
+        {
+            if (prequel == null) throw new ArgumentException("Prequel cannot be null.");
+            if (prequel == this) throw new InvalidOperationException("A movie cannot be a prequel to itself.");
+            if (_prequels.Contains(prequel)) throw new InvalidOperationException("Prequel already assigned to this movie.");
+
+            _prequels.Add(prequel);
+            if (!PrequelIds.Contains(prequel.Id)) PrequelIds.Add(prequel.Id);
+
+            if (!prequel._sequels.Contains(this))
+            {
+                prequel.AddSequelInternal(this);
+            }
+        }
+
+        public void RemovePrequel(Movie prequel)
+        {
+            if (prequel == null) throw new ArgumentException("Prequel cannot be null.");
+            if (!_prequels.Contains(prequel)) throw new InvalidOperationException("Prequel is not assigned to this movie.");
+
+            _prequels.Remove(prequel);
+            PrequelIds.Remove(prequel.Id);
+
+            if (prequel._sequels.Contains(this))
+            {
+                prequel.RemoveSequelInternal(this);
+            }
+        }
+
+        internal void AddPrequelInternal(Movie prequel)
+        {
+            _prequels.Add(prequel);
+            if (!PrequelIds.Contains(prequel.Id)) PrequelIds.Add(prequel.Id);
+        }
+
+        internal void RemovePrequelInternal(Movie prequel)
+        {
+            _prequels.Remove(prequel);
+            PrequelIds.Remove(prequel.Id);
+        }
+
+        internal void ClearPrequelsInternal()
+        {
+            _prequels.Clear();
+            PrequelIds.Clear();
+        }
+
+        public void RemoveReflexiveAssociations()
+        {
+            // Remove this movie from each prequel's sequels (use a copy to avoid modifying while iterating)
+            foreach (var prequel in new List<Movie>(_prequels))
+            {
+                // Use internal helper on the other side so we don't trigger validation/exceptions there
+                prequel.RemoveSequelInternal(this);
+            }
+            // Clear local prequel collections and ids
+            _prequels.Clear();
+            PrequelIds.Clear();
+
+            // Remove this movie from each sequel's prequels
+            foreach (var sequel in new List<Movie>(_sequels))
+            {
+                sequel.RemovePrequelInternal(this);
+            }
+            // Clear local sequel collections and ids
+            _sequels.Clear();
+            SequelIds.Clear();
+        }
+        
         
 
         //  Class extent
@@ -257,23 +390,47 @@ namespace CinemaManagementSystem
             return $"{Title} ({genres}) directed by {directors}, {ScreeningType}, {Duration} min";
         }
 
+     
+        
         public void Delete()
         {
+            
             foreach (var actor in new List<Actor>(_actors))
             {
                 actor.RemoveMovieInternal(this);
             }
             _actors.Clear();
+            ActorIds.Clear();
 
+            
             foreach (var screening in new List<Screening>(_screenings))
             {
-                screening.Cancel(); 
+                screening.Cancel();
             }
             _screenings.Clear();
 
+          
+            foreach (var prequel in new List<Movie>(_prequels))
+            {
+                prequel.RemoveSequelInternal(this);
+            }
+            _prequels.Clear();
+            PrequelIds.Clear();
+
+            
+            foreach (var sequel in new List<Movie>(_sequels))
+            {
+                sequel.RemovePrequelInternal(this);
+            }
+            _sequels.Clear();
+            SequelIds.Clear();
+
+          
             _movies.Remove(this);
         }
 
+        
+      
         
         public void AddDirector(string director)
         {
@@ -358,6 +515,7 @@ namespace CinemaManagementSystem
         }
     }
 }
+
 
 
 
