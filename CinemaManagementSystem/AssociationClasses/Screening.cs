@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem.AssociationClasses;
@@ -94,11 +95,35 @@ namespace CinemaManagementSystem.AssociationClasses;
             if (movie == null) throw new ArgumentException("Movie cannot be null.");
             if (hall == null) throw new ArgumentException("Hall cannot be null.");
 
+            Screening? duplicate = _screenings
+                .FirstOrDefault(s => s.Movie == movie 
+                                     && s.Date == date 
+                                     && s.Hour == hour 
+                                     && s.Language == language
+                                     && s.Hall == hall);
+            
+            if (duplicate != null)
+                throw new DuplicateException("Screening", duplicate.ToString());
+            
             if (date.Date < movie.ReleaseDate.Date)
                 throw new ArgumentException("Screening date cannot be earlier than movie release date.");
             
+            if(CheckOverlaps(hall, date, hour, movie.Duration))
+                throw new InvalidOperationException(
+                    $"Hall {hall.Number} is already occupied at this time.");
+
+            var screening = new Screening(movie, hall, date, hour, language);
+
+            movie.AddScreeningInternal(screening);
+            hall.AddScreeningInternal(screening);
+
+            return screening;
+        }
+        
+        private static bool CheckOverlaps(Hall hall, DateTime date, TimeSpan hour, int movieDuration)
+        {
             DateTime newStart = date.Date + hour;
-            DateTime newEnd = newStart + TimeSpan.FromMinutes(movie.Duration);
+            DateTime newEnd = newStart + TimeSpan.FromMinutes(movieDuration);
             
             foreach (var s in _screenings)
             {
@@ -114,38 +139,40 @@ namespace CinemaManagementSystem.AssociationClasses;
                 bool overlaps = newStart < existingEnd && existingStart < newEnd;
 
                 if (overlaps)
-                {
-                    throw new InvalidOperationException(
-                        $"Hall {hall.Number} is already occupied between " +
-                        $"{existingStart:HH\\:mm} and {existingEnd:HH\\:mm} on {date:dd/MM/yyyy}.");
-                }
+                    return true;
             }
-
-            var screening = new Screening(movie, hall, date, hour, language);
-
-            movie.AddScreeningInternal(screening);
-            hall.AddScreeningInternal(screening);
-
-            return screening;
+            
+            return false;
         }
 
-        //to make sure to set each hall for only one movie at that time
-        public static void ValidateNoConflict(Hall hall, DateTime date, TimeSpan time)
+        public static void RemoveScreening(Movie movie, Hall hall, DateTime date, TimeSpan hour)
         {
-            foreach (var screening in hall.Screenings)
+            if (movie == null) throw new ArgumentException("Movie cannot be null.");
+            if (hall == null) throw new ArgumentException("Hall cannot be null.");
+            
+            Screening? screening = _screenings
+                .FirstOrDefault(s => s.Movie == movie 
+                                     && s.Date == date 
+                                     && s.Hour == hour 
+                                     && s.Hall == hall);
+            
+            if (screening != null)
             {
-                if (screening.Date == date && screening.Hour == time)
-                    throw new InvalidOperationException("Hall already has a screening at this time.");
+                _screenings.Remove(screening);
+                movie.RemoveScreeningInternal(screening);
+                hall.RemoveScreeningInternal(screening);
             }
+            else throw new ExistenceException("Screening" );
+            
         }
-
-
+        
+        
         //Delete association 
         public void Cancel()
         {
             _screenings.Remove(this);
-            _movie?.RemoveScreeningInternal(this);
-            _hall?.RemoveScreeningInternal(this);
+            _movie.RemoveScreeningInternal(this);
+            _hall.RemoveScreeningInternal(this);
         }
 
         public override string ToString()
@@ -160,6 +187,7 @@ namespace CinemaManagementSystem.AssociationClasses;
                 s.Cancel();
             }
         }
+        //
         
         //attribute association Ticket
         [XmlIgnore]

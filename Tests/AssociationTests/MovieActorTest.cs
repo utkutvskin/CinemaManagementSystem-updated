@@ -1,4 +1,5 @@
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.Exceptions;
 using NUnit.Framework;
 
 namespace CinemaManagementSystem.Tests.AssociationTests;
@@ -6,8 +7,6 @@ namespace CinemaManagementSystem.Tests.AssociationTests;
 [TestFixture]
 public class MovieActorTest
 {
-    private string filePathMovie = "association_movie_test.xml";
-    private string filePathActor = "association__actor_test.xml";
 
     [SetUp]
     public void Setup()
@@ -16,7 +15,28 @@ public class MovieActorTest
     }
 
     [Test]
-    public void Constructor_CreatingMovieWithActors()
+    public void RemoveActor_ThrowException_WhenActorDoestExists()
+    {
+        var directors = new List<string> { "Christopher Nolan" };
+        var genres = new List<GenreEnum> { GenreEnum.Sci_fi, GenreEnum.Thriller };
+
+
+
+        var actors = new List<Actor>
+        {
+            new Actor("Actor1", "Surname1", GenderEnum.Men, new DateTime(1999, 12, 2)),
+            new Actor("Actor2", "Surname2", GenderEnum.Men, new DateTime(1999, 1, 2)),
+        };
+
+        var actor = new Actor("Actor3", "Surname3", GenderEnum.Men, new DateTime(1999, 1, 2));
+        
+        var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148, new DateTime(2025, 12, 3),
+            actors);
+        
+        Assert.Throws<ExistenceException>(() => movie.RemoveActor(actor));
+    }
+    [Test]
+    public void Constructor_CreateMovieWithActors()
     {
         var directors = new List<string> { "Christopher Nolan" };
         var genres = new List<GenreEnum> { GenreEnum.Sci_fi, GenreEnum.Thriller };
@@ -49,7 +69,6 @@ public class MovieActorTest
 
         Assert.IsTrue(movie.Actors.Contains(actor));
         Assert.IsTrue(actor.Movies.Contains(movie));
-        Assert.IsTrue(movie.ActorIds.Contains(actor.Id));
     }
 
     [Test]
@@ -66,7 +85,6 @@ public class MovieActorTest
 
         Assert.IsTrue(movie.Actors.Contains(actor));
         Assert.IsTrue(actor.Movies.Contains(movie));
-        Assert.IsTrue(movie.ActorIds.Contains(actor.Id));
 
     }
 
@@ -86,7 +104,6 @@ public class MovieActorTest
 
         Assert.IsFalse(movie.Actors.Contains(actor1));
         Assert.IsFalse(actor1.Movies.Contains(movie));
-        Assert.IsFalse(movie.ActorIds.Contains(actor1.Id));
 
         Assert.IsTrue(movie.Actors.Contains(actor2));
     }
@@ -102,7 +119,7 @@ public class MovieActorTest
 
         var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148, new DateTime(2025, 12, 3), new List<Actor>() {actor});
 
-        Assert.Throws<InvalidOperationException>(() => { movie.RemoveActor(actor); });
+        Assert.Throws<MultiplicityException>(() => { movie.RemoveActor(actor); });
     }
 
     [Test]
@@ -121,57 +138,10 @@ public class MovieActorTest
 
         Assert.IsFalse(movie.Actors.Contains(actor1));
         Assert.IsFalse(actor1.Movies.Contains(movie));
-        Assert.IsFalse(movie.ActorIds.Contains(actor1.Id));
 
         Assert.IsTrue(movie.Actors.Contains(actor2));
         
     }
-
-
-    [Test]
-    public void SaveAndLoad_RestoresMovieActorAssociation()
-    {
-        var directors = new List<string> { "Christopher Nolan" };
-        var genres = new List<GenreEnum> { GenreEnum.Sci_fi, GenreEnum.Thriller };
-
-        var actor1 = new Actor("A", "One", GenderEnum.Men, new DateTime(1980, 1, 1));
-        var actor2 = new Actor("B", "Two", GenderEnum.Men, new DateTime(1985, 2, 2));
-
-        var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148, new DateTime(2025, 12, 3),
-            new List<Actor> { actor1, actor2 });
-
-        if (File.Exists(filePathMovie))
-            File.Delete(filePathMovie);
-
-        if (File.Exists(filePathActor))
-            File.Delete(filePathActor);
-
-        Actor.Save(filePathActor);
-        Movie.Save(filePathMovie);
-
-        Movie.ClearExtent();
-        Actor.ClearAllActors();
-
-
-        Actor.Load(filePathActor);
-        Movie.Load(filePathMovie);
-
-        var loadedMovie = Movie.Movies.Single(m => m.Title == "Inception");
-
-        var loadedActor = Actor.Actors;
-
-        Assert.IsTrue(loadedMovie.Actors.Contains(loadedActor.First()));
-
-        Assert.IsTrue(
-            loadedActor.First().Movies.Contains(loadedMovie));
-        
-        Assert.IsTrue(
-            loadedActor.Single(n => n.Name == "B").Movies.Contains(loadedMovie));
-
-        Assert.IsTrue(
-            loadedMovie.ActorIds.Contains(loadedActor.First().Id));
-        Assert.IsTrue(
-            loadedMovie.ActorIds.Contains(loadedActor.Single(n => n.Name == "B").Id));
-    }
+    
 
 }

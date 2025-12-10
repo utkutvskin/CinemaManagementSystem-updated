@@ -12,7 +12,6 @@ namespace CinemaManagementSystem
     [Serializable]
     public class Actor :IExtent<Actor>
     {
-        private static int _nextId = 1;
         //Attributes
         private string _name;
         private string _surname;
@@ -78,9 +77,6 @@ namespace CinemaManagementSystem
             }
         }
         
-        [XmlAttribute]
-        public int Id { get; set; }
-        
         
         //Basic Association Movie
         [XmlIgnore]
@@ -116,7 +112,7 @@ namespace CinemaManagementSystem
         {
             _movies.Remove(movie);
         }
-
+        //
 
         
         //Class extent
@@ -138,8 +134,6 @@ namespace CinemaManagementSystem
 
         public Actor(string name, string surname, GenderEnum gender, DateTime birthDate)
         {
-            Id = _nextId++;
-
             Name = name;
             Surname = surname;
             Gender = gender;

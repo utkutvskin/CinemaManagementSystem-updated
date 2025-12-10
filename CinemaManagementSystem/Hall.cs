@@ -185,6 +185,11 @@ namespace CinemaManagementSystem
 
             return Screening.Create(movie, this, date, hour, language);
         }
+        
+        public void RemoveScreening(Movie movie, DateTime date, TimeSpan hour)
+        {
+            Screening.RemoveScreening(movie, this, date, hour);
+        }
 
         internal void AddScreeningInternal(Screening screening)
         {
@@ -197,7 +202,7 @@ namespace CinemaManagementSystem
             if (screening == null) throw new ArgumentException("Screening cannot be null.");
             _screenings.Remove(screening);
         }
-
+        //
 
         //  Class extent 
         private static List<Hall> _halls = new List<Hall>();
