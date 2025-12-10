@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
@@ -50,11 +51,12 @@ namespace CinemaManagementSystem
         {
             if (hall == null)
                 throw new ArgumentException("Hall cannot be null for a seat.");
-
             
-            if (_hall != null && _hall != hall)
-                throw new InvalidOperationException("Seat is already assigned to another hall.");
-
+            if(hall == _hall)
+                throw new DuplicateException("Hall",  hall.ToString());
+            
+            hall.SetSeat(this);
+            
             _hall = hall;
         }
         
@@ -83,7 +85,7 @@ namespace CinemaManagementSystem
         //  Constructors 
         public Seat() { }
 
-        //it should be private, but for SeatTests we make it public
+        //only for tests
         public Seat(int number, char row)
         {
 
@@ -96,8 +98,6 @@ namespace CinemaManagementSystem
         public Seat(int number, char row, Hall hall) : this(number, row)
         {
             SetHall(hall);
-            
-            hall.AddSeatInternal(this);
         }
 
         

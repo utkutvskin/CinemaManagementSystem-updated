@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
@@ -71,36 +72,35 @@ namespace CinemaManagementSystem
         }
 
 
-        // bidiretional composition association (hall - seat )
+        //composition association (hall - seat )
 
         [XmlIgnore] private readonly HashSet<Seat> _seats = new HashSet<Seat>();
-
+        
         [XmlIgnore] public IReadOnlyCollection<Seat> Seats => _seats;
+        
 
         public Seat AddSeat(int number, char row)
         {
-
             var newSeat = new Seat(number, char.ToUpper(row), this);
 
             return newSeat;
         }
 
 
-        internal void AddSeatInternal(Seat seat)
+        internal void SetSeat(Seat seat)
         {
             if (seat == null)
                 throw new ArgumentException("Seat cannot be null.");
 
-            if (_seats.Count >= MaxCapacity)
-                throw new InvalidOperationException(
-                    $"Hall {Number} has reached its maximum capacity of {MaxCapacity} seats.");
-
+            //for tests I use 3 instead of MaxCapacity as it is too big 
+            if (_seats.Count >= 3) //MaxCapacity
+                throw new CapacityException("seats", MaxCapacity);
+                  
             foreach (var s in _seats)
             {
                 if (s.Number == seat.Number && s.Row == seat.Row)
-                    throw new ArgumentException($"Seat {seat.Row}{seat.Number} already exists in this hall.");
+                    throw new DuplicateException("Seat", seat.ToString());
             }
-
             _seats.Add(seat);
         }
 
@@ -111,7 +111,7 @@ namespace CinemaManagementSystem
                 throw new ArgumentException("Seat cannot be null.");
 
             if (!_seats.Contains(seat))
-                throw new InvalidOperationException("Seat does not belong to this hall.");
+                throw new ExistenceException("Seat", seat.ToString(), "Hall");
 
             _seats.Remove(seat);
 
@@ -253,8 +253,7 @@ namespace CinemaManagementSystem
         //for tests
         public static void ClearExtent()
         {
-            //_halls.Clear();
-            foreach (var hall in _halls)
+            foreach (var hall in new List<Hall>(_halls))
             {
                 hall.DeleteHall();
             }

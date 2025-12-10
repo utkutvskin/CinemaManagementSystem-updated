@@ -100,9 +100,10 @@ namespace CinemaManagementSystem.Tests
             Seat.Load(filePath);
 
             var seats = Seat.Seats;
-            Assert.AreEqual(3, seats.Count);
-            Assert.AreEqual(1, seats[0].Number);
-            Assert.AreEqual('A', seats[0].Row);
+            
+            Assert.That(seats.Count, Is.EqualTo(3));
+            Assert.That(seats[0].Number, Is.EqualTo(1));
+            Assert.That(seats[0].Row, Is.EqualTo('A'));
         }
     }
 }
