@@ -21,6 +21,7 @@ namespace CinemaManagementSystem
             {
                 if (value <= 0)
                     throw new ArgumentException("Number can't be less than 0.");
+                
                 _number = value;
             }
         }
@@ -118,59 +119,37 @@ namespace CinemaManagementSystem
             Seat.RemoveFromExtent(seat);
         }
 
-        public void DeleteHall()
-        {
-            foreach (var screening in _screenings)
-            {
-                screening.Cancel();
-            }
-
-            _screenings.Clear();
-
-            foreach (var seat in _seats)
-            {
-                Seat.RemoveFromExtent(seat);
-            }
-
-            _seats.Clear();
-
-            if (_floor != null)
-            {
-                _floor.InternalRemoveHall(this);
-            }
-
-            if (_managedBy != null)
-            {
-                _managedBy.RemoveHallInternal(this);
-            }
-
-            RemoveFromExtent(this);
-        }
-
 
         internal void InternalClearSeats()
         {
             _seats.Clear();
         }
+        
+        //
+        
+        
 
+        //Composition association Floor
         [XmlIgnore] private Floor _floor;
 
         [XmlIgnore]
-        public Floor FLoor =>
+        public Floor Floor => _floor;
 
-            _floor;
-
-        internal void SetFloor(Floor floor)
+        internal void SetFloor(Floor flr)
         {
-            if (floor == null)
+            if (flr == null)
                 throw new ArgumentException("floor cannot be null for a hall.");
 
 
-            if (_floor != null && _floor != floor)
-                throw new InvalidOperationException("Hall is already assigned to another floor.");
-
-            _floor = floor;
+            if(flr == _floor)
+                throw new DuplicateException("Floor",  flr.ToString());
+            
+            flr.SetHall(this);
+            
+            _floor = flr;
         }
+        
+        //
 
 
         //attribute association
@@ -216,10 +195,41 @@ namespace CinemaManagementSystem
             _halls.Add(hall);
         }
 
+        public void DeleteHall()
+        {
+            foreach (var screening in _screenings)
+            {
+                screening.Cancel();
+            }
+
+            _screenings.Clear();
+
+            foreach (var seat in _seats)
+            {
+                Seat.RemoveFromExtent(seat);
+            }
+
+            _seats.Clear();
+
+            if(_floor != null)
+            {
+                _floor.InternalRemoveHall(this);
+            }
+            
+
+            if (_managedBy != null)
+            {
+                _managedBy.RemoveHallInternal(this);
+            }
+
+            RemoveFromExtent(this);
+        }
+        
         internal static void RemoveFromExtent(Hall hall)
         {
             _halls.Remove(hall);
         }
+        
 
 
         //  Constructors 
@@ -238,8 +248,7 @@ namespace CinemaManagementSystem
             this(number)
         {
             SetFloor(floor);
-
-            floor.AddHallInternal(this);
+            
             RegisterArea(this);
         }
 

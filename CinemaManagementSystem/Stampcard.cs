@@ -80,6 +80,7 @@ namespace CinemaManagementSystem
 
        // ---------- Association: Stampcard → Customer (passive side) ----------
 
+       [XmlIgnore]
         public Customer Customer { get; private set; }
         public void SetCustomer(Customer customer)
         {

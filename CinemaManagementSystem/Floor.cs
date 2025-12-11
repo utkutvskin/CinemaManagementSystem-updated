@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem;
@@ -46,7 +47,7 @@ public class Floor :CleanableArea, IExtent<Floor>
         return newHall;
     }
         
-    internal void AddHallInternal(Hall hall)
+    internal void SetHall(Hall hall)
     {
         if (hall == null)
             throw new ArgumentException("hall cannot be null.");
@@ -54,7 +55,7 @@ public class Floor :CleanableArea, IExtent<Floor>
         foreach (var hl in _halls)
         {
             if (hl.Number == hall.Number)
-                throw new ArgumentException($"Hall {hall.Number} already exists in this floor.");
+                throw new DuplicateException($"Hall", hall.ToString());
         }
         _halls.Add(hall);
     }
@@ -66,42 +67,18 @@ public class Floor :CleanableArea, IExtent<Floor>
             throw new ArgumentException("hall cannot be null.");
 
         if (!_halls.Contains(hall))
-            throw new InvalidOperationException("hall does not belong to this floor.");
+            throw new ExistenceException("hall", hall.ToString(), "Floor");
 
         _halls.Remove(hall);
             
         Hall.RemoveFromExtent(hall);  
     }
 
-    public void DeleteFloor()
-    {
-        foreach (var hall in _halls)
-        {
-            hall.DeleteHall();
-        }
-
-        _halls.Clear();
-        
-        foreach (var wc in _wcs)
-        {
-            WC.RemoveFromExtent(wc);
-        }
-
-        _wcs.Clear();
-
-        RemoveFromExtent(this);
-    }
-
-    internal void InternalClearHalls()
-    {
-        _halls.Clear();
-    }
-    
     internal void InternalRemoveHall(Hall hall)
     {
         _halls.Remove(hall);
     }
-    
+    //
     
     
     //composition association (WC)
@@ -119,39 +96,37 @@ public class Floor :CleanableArea, IExtent<Floor>
         return newWC;
     }
         
-    internal void AddWCInternal(WC wc)
+    internal void SetWc(WC wc)
     {
         if (wc == null)
             throw new ArgumentException("wc cannot be null.");
         
+        if (_wcs.Count >= 2) 
+            throw new MultiplicityException();
+        
         foreach (var existing in _wcs)
         {
             if (existing.Type == wc.Type)
-                throw new ArgumentException($"WC for {wc.Type} already exists on this floor.");
+                throw new DuplicateException("WC", wc.ToString());
         }
         
         _wcs.Add(wc);
     }
 
 
-    public void RemoveWC(WC wc)
+    public void RemoveWc(WC wc)
     {
         if (wc == null)
             throw new ArgumentException("wc cannot be null.");
 
         if (!_wcs.Contains(wc))
-            throw new InvalidOperationException("wc does not belong to this floor.");
+            throw new ExistenceException("wc", wc.ToString(), "Floor");
 
         _wcs.Remove(wc);
             
         WC.RemoveFromExtent(wc);  
     }
-
-
-    internal void InternalClearWCs()
-    {
-        _wcs.Clear();
-    }
+    //
     
     
 
@@ -170,7 +145,31 @@ public class Floor :CleanableArea, IExtent<Floor>
     {
         _floors.Remove(floor);
     }
+    
+    public void DeleteFloor()
+    {
+        Hall.ClearExtent();
 
+        _halls.Clear();
+        
+        foreach (var wc in _wcs)
+        {
+            WC.RemoveFromExtent(wc);
+        }
+
+        _wcs.Clear();
+
+        RemoveFromExtent(this);
+    }
+
+    //for tests
+    public static void ClearExtent()
+    {
+        foreach (var floor in new List<Floor>(_floors))
+        {
+            floor.DeleteFloor();
+        }
+    }
     
     //constructor
     public Floor() { }
@@ -222,6 +221,11 @@ public class Floor :CleanableArea, IExtent<Floor>
         }
 
         return true;
+    }
+
+    public override string ToString()
+    {
+        return $"Floor {Number}";
     }
 
     public List<Floor> GetExtent() => _floors;

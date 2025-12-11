@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem;
@@ -31,21 +32,21 @@ public class WC :CleanableArea, IExtent<WC>
         if (floor == null)
             throw new ArgumentException("floor cannot be null for a WC.");
 
-            
-        if (_floor != null && _floor != floor)
-            throw new InvalidOperationException("wc is already assigned to another hall.");
-
+        if(floor == _floor)
+            throw new DuplicateException("Floor",  floor.ToString());
+        
+        floor.SetWc(this);
+        
         _floor = floor;
     }
         
 
     internal static void RemoveFromExtent(WC wc)
     {
-        if (wc != null)
-            _wcs.Remove(wc);
+        _wcs.Remove(wc);
     }
 
-
+    //
     
     //Class extent
     private static List<WC> _wcs = new();
@@ -56,16 +57,6 @@ public class WC :CleanableArea, IExtent<WC>
         if(wc == null)
             throw new ArgumentException("WC cannot be null.");
         _wcs.Add(wc);
-    }
-
-    
-    //for tests only
-    public static void ClearAllWCsForTesting()
-    {
-        foreach (var floor in Floor.Floors)
-            floor.InternalClearWCs();
-
-        _wcs.Clear();
     }
     
     
@@ -85,10 +76,8 @@ public class WC :CleanableArea, IExtent<WC>
         Type = type;
 
         AddWC(this);
+        
         SetFloor(floor);
-        
-        floor.AddWCInternal(this);
-        
         RegisterArea(this);
     }
     
@@ -129,6 +118,11 @@ public class WC :CleanableArea, IExtent<WC>
         return true;
     }
 
+    public override string ToString()
+    {
+        return $"WC: {Type}";
+    }
+    
     public List<WC> GetExtent() => _wcs;
 
     public void ReplaceExtent(List<WC> newExtent)
