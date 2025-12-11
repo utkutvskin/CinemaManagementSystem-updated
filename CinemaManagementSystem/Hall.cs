@@ -116,7 +116,7 @@ namespace CinemaManagementSystem
 
             _seats.Remove(seat);
 
-            Seat.RemoveFromExtent(seat);
+            seat.RemoveFromExtent();
         }
 
 
@@ -206,7 +206,7 @@ namespace CinemaManagementSystem
 
             foreach (var seat in _seats)
             {
-                Seat.RemoveFromExtent(seat);
+                seat.RemoveFromExtent();
             }
 
             _seats.Clear();

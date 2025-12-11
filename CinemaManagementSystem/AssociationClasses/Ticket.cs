@@ -1,5 +1,7 @@
+using System.Runtime.InteropServices;
 using System.Xml;
 using System.Xml.Serialization;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem.AssociationClasses;
@@ -28,6 +30,7 @@ public class Ticket :IExtent<Ticket>
     [XmlIgnore] public Screening Screening => _screening;
     [XmlIgnore] public Order Order => _order;
     
+    
     //Class extent
     private static List<Ticket> _tickets = new();
     
@@ -43,7 +46,7 @@ public class Ticket :IExtent<Ticket>
     //constructors
     public Ticket() {}
 
-    public Ticket(double price, Screening screening, Order order, Seat seat)
+    private Ticket(double price, Screening screening, Order order, Seat seat)
     {
         _screening = screening;
         _order = order;
@@ -53,7 +56,19 @@ public class Ticket :IExtent<Ticket>
         AddTicket(this);
     }
 
-    public static Ticket CreateTicket(double price, Screening screening, Order order, Seat seat)
+    internal static Ticket CreateTicket(double price, Screening screening, Order order, Seat seat)
+    {
+       
+        var ticket = new Ticket(price, screening, order, seat);
+        
+        screening.AddTicketInternal(ticket);
+        order.AddTicketInternal(ticket);
+        seat.SetTicket(ticket);
+        
+        return ticket;
+    }
+
+    internal static void RemoveTicket(Screening screening, Order order, Seat seat)
     {
         if (screening == null) 
             throw new ArgumentException("Screening cannot be null.");
@@ -61,27 +76,25 @@ public class Ticket :IExtent<Ticket>
             throw new ArgumentException("Order cannot be null.");
         if (seat == null)
             throw new ArgumentException("Seat cannot be null.");
-
-        if (!screening.Hall.Seats.Contains(seat))
-            throw new InvalidOperationException("Seat does not belong to this hall.");
-
-        bool occupied = Tickets.Any(t => t.Screening == screening && t.seat == seat);
-        if (occupied)
-            throw new InvalidOperationException($"Seat {seat} is already taken for this screening.");
-       
-        var ticket = new Ticket(price, screening, order, seat);
         
-        screening.AddTicketInternal(ticket);
-        order.AddTicketInternal(ticket);
         
-        return ticket;
+        Ticket? ticket = _tickets.FirstOrDefault(t => t.Screening == screening && t.Seat == seat && t.Order == order);
+        
+        if (ticket != null)
+        {
+            ticket.Cancel();
+        }
+        else throw new ExistenceException("Screening" );
     }
+    
+    
 
     public void Cancel()
     {
         _tickets.Remove(this);
-        _screening?.RemoveTicketInternal(this);
-        _order?.RemoveTicketInternal(this);
+        _screening.RemoveTicketInternal(this);
+        _order.RemoveTicketInternal(this);
+        _seat.RemoveTicket(this);
     }
 
     
@@ -90,7 +103,7 @@ public class Ticket :IExtent<Ticket>
     private Seat _seat;
         
     [XmlIgnore]
-    public Seat seat => _seat;
+    public Seat Seat => _seat;
     
     
     public override string ToString()

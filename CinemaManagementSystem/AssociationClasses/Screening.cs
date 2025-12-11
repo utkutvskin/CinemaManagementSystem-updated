@@ -62,6 +62,8 @@ namespace CinemaManagementSystem.AssociationClasses;
         public Hall Hall => _hall;
 
         
+        
+        
         //Class extent
         private static List<Screening> _screenings = new();
         public static IReadOnlyList<Screening> Screenings => _screenings.AsReadOnly();
@@ -79,8 +81,8 @@ namespace CinemaManagementSystem.AssociationClasses;
         
         private Screening(Movie movie, Hall hall, DateTime date, TimeSpan hour, string language)
         {
-            _movie = movie ?? throw new ArgumentException("Movie cannot be null.");
-            _hall = hall ?? throw new ArgumentException("Hall cannot be null.");
+            _movie = movie;
+            _hall = hall;
 
             Date = date;
             Hour = hour;
@@ -158,9 +160,7 @@ namespace CinemaManagementSystem.AssociationClasses;
             
             if (screening != null)
             {
-                _screenings.Remove(screening);
-                movie.RemoveScreeningInternal(screening);
-                hall.RemoveScreeningInternal(screening);
+                screening.Cancel();
             }
             else throw new ExistenceException("Screening" );
             
@@ -173,6 +173,10 @@ namespace CinemaManagementSystem.AssociationClasses;
             _screenings.Remove(this);
             _movie.RemoveScreeningInternal(this);
             _hall.RemoveScreeningInternal(this);
+            foreach (var t in _tickets)
+            {
+                t.Cancel();
+            }
         }
 
         public override string ToString()

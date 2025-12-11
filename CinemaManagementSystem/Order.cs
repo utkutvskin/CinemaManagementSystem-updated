@@ -4,17 +4,18 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Order :IExtent<Order>
+    public class Order : IExtent<Order>
     {
         //Attributes
         private CardInfo _cardInfo;
         private DateTime _dateOfPurchase;
-        
+
         public CardInfo cardInfo
         {
             get => _cardInfo;
@@ -37,13 +38,11 @@ namespace CinemaManagementSystem
             }
         }
 
-        
-        //attribute association Ticket
-        [XmlIgnore]
-        private readonly List<Ticket> _tickets = new();
 
-        [XmlIgnore]
-        public IReadOnlyCollection<Ticket> Tickets => _tickets.AsReadOnly();
+        //attribute association Ticket
+        [XmlIgnore] private readonly List<Ticket> _tickets = new();
+
+        [XmlIgnore] public IReadOnlyCollection<Ticket> Tickets => _tickets.AsReadOnly();
 
         internal void AddTicketInternal(Ticket ticket)
         {
@@ -59,50 +58,90 @@ namespace CinemaManagementSystem
             _tickets.Remove(ticket);
         }
 
-        public Ticket AddTicket(Screening screening, Seat seat, double price)
+
+        public void AddTicket(Screening screening, Seat seat, double price)
         {
-            return Ticket.CreateTicket(price, screening, this, seat);
+            if (screening == null)
+                throw new ArgumentException("Screening cannot be null.");
+            if (seat == null)
+                throw new ArgumentException("Seat cannot be null.");
+
+            if (!screening.Hall.Seats.Contains(seat))
+                throw new ExistenceException("Seat", seat.ToString(), "hall");
+
+            bool occupied = Ticket.Tickets.Any(t => t.Screening == screening && t.Seat == seat);
+
+            if (occupied)
+                throw new InvalidOperationException($"Seat {seat} is already taken for this screening.");
+
+            Ticket.CreateTicket(price, screening, this, seat);
+
         }
-        
-        
-        //association customer
-        [XmlIgnore]
+
+        public void RemoveTicket(Screening screening, Seat seat)
+        {
+            if (screening == null)
+                throw new ArgumentException("Screening cannot be null.");
+            if (seat == null)
+                throw new ArgumentException("Seat cannot be null.");
+            
+            Ticket.RemoveTicket(screening, this, seat);
+        }
+
+    [XmlIgnore]
         private Customer _customer;
 
-        [XmlIgnore]
-        public Customer Customer
-        {
-            get => _customer;
-            set => _customer = value;
-        }
+        [XmlIgnore] public Customer Customer => _customer;
 
-        public void AddCustomer(Customer customer)
+        public static Order Create(Customer customer, CardInfo cardInfo, Screening screening, Seat seat, double price)
         {
-            if (Customer == customer)
-                return;
+            if (customer == null) 
+                throw new ArgumentException("Customer cannot be null.");
+            if(screening == null)
+                throw new ArgumentException("Screening cannot be null.");
+            if (seat == null)
+                throw new ArgumentException("Seat cannot be null."); 
             
-            if (Customer != null)
-            {
-                var old = Customer;
-                Customer = null;
-                old.ForceRemoveOrder(this);
-            }
+            if (!screening.Hall.Seats.Contains(seat))
+                throw new ExistenceException("Seat", seat.ToString(), "hall");
 
-            Customer = customer;
+            bool occupied = Ticket.Tickets.Any(t => t.Screening == screening && t.Seat == seat);
+        
+            if (occupied)
+                throw new InvalidOperationException($"Seat {seat} is already taken for this screening.");
+            
+            var order = new Order(cardInfo, customer, screening, seat, price);
 
-            if (customer != null)
-            {
-                customer.ForceAddOrder(this);
-            }
-        }
-        public static Order Create(Customer customer, CardInfo cardInfo)
-        {
-            if (customer == null) throw new ArgumentNullException(nameof(customer));
-            var order = new Order(cardInfo);
-            order.AddCustomer(customer);    
+            customer.AddOrder(order);
             return order;
         }
-        
+
+        public static void RemoveOrder(Customer customer, DateTime dateOfPurchase, Screening screening, Seat seat)
+        {
+            if (customer == null) 
+                throw new ArgumentException("Customer cannot be null.");
+            if(screening == null)
+                throw new ArgumentException("Screening cannot be null.");
+            if (seat == null)
+                throw new ArgumentException("Seat cannot be null.");
+            
+            Order? order = _orders.FirstOrDefault(o => o.Customer == customer && o.DateOfPurchase == dateOfPurchase);
+            
+            if (order == null)
+                throw new ExistenceException("Order");
+            
+            order.Cancel();
+        }
+
+        public void Cancel()
+        {
+            _orders.Remove(this);
+            foreach (var ticket in _tickets)
+            {
+                ticket.Cancel();
+            }
+            _customer.RemoveOrder(this);
+        }
 
         //Class extent
         private static List<Order> _orders = new List<Order>();
@@ -119,11 +158,15 @@ namespace CinemaManagementSystem
         // Constructors
         public Order() { } 
 
-        public Order(CardInfo cardInfo)
+        private Order(CardInfo cardInfo, Customer customer, Screening screening, Seat seat, double price)
         {
-
             this.cardInfo = cardInfo;
             DateOfPurchase = DateTime.Now;
+            
+            _customer = customer;
+            
+            Ticket.CreateTicket(price, screening, this, seat);
+             
             AddOrder(this);
         }
 

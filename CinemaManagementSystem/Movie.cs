@@ -133,8 +133,7 @@ namespace CinemaManagementSystem
                 actor.RemoveMovieInternal(this);
             }
         }
-
-
+        
 
         internal void AddActorInternal(Actor actor)
         {
@@ -146,11 +145,7 @@ namespace CinemaManagementSystem
         {
             _actors.Remove(actor);
         }
-
-        internal void ClearActorsInternal()
-        {
-            _actors.Clear();
-        }
+        
         //
         
         
@@ -324,6 +319,40 @@ namespace CinemaManagementSystem
 
             _movies.Add(movie);
         }
+        
+        public void Delete()
+        {
+            
+            foreach (var actor in new List<Actor>(_actors))
+            {
+                actor.RemoveMovieInternal(this);
+            }
+            _actors.Clear();
+
+            
+            foreach (var screening in new List<Screening>(_screenings))
+            {
+                screening.Cancel();
+            }
+            _screenings.Clear();
+
+          
+            foreach (var prequel in new List<Movie>(_prequels))
+            {
+                prequel.RemoveSequelInternal(this);
+            }
+            _prequels.Clear();
+
+            
+            foreach (var sequel in new List<Movie>(_sequels))
+            {
+                sequel.RemovePrequelInternal(this);
+            }
+            _sequels.Clear();
+
+          
+            _movies.Remove(this);
+        }
 
         
         
@@ -364,41 +393,7 @@ namespace CinemaManagementSystem
             return $"{Title} ({genres}) directed by {directors}, {ScreeningType}, {Duration} min";
         }
 
-     
         
-        public void Delete()
-        {
-            
-            foreach (var actor in new List<Actor>(_actors))
-            {
-                actor.RemoveMovieInternal(this);
-            }
-            _actors.Clear();
-
-            
-            foreach (var screening in new List<Screening>(_screenings))
-            {
-                screening.Cancel();
-            }
-            _screenings.Clear();
-
-          
-            foreach (var prequel in new List<Movie>(_prequels))
-            {
-                prequel.RemoveSequelInternal(this);
-            }
-            _prequels.Clear();
-
-            
-            foreach (var sequel in new List<Movie>(_sequels))
-            {
-                sequel.RemovePrequelInternal(this);
-            }
-            _sequels.Clear();
-
-          
-            _movies.Remove(this);
-        }
 
         
       

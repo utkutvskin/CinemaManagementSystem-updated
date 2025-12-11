@@ -34,6 +34,7 @@ public abstract class CleanableArea
         }
     }
     
+    [XmlIgnore]
     private static readonly List<CleanableArea> _areas = new();
     [XmlIgnore]
     public static IReadOnlyList<CleanableArea> Areas => _areas.AsReadOnly();

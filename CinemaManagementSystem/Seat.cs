@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
+using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
@@ -60,13 +61,37 @@ namespace CinemaManagementSystem
             _hall = hall;
         }
         
-        internal static void RemoveFromExtent(Seat seat)
+        internal void RemoveFromExtent()
         {
-            _seats.Remove(seat);
+            foreach (var ticket in new List<Ticket>(_tickets))
+                ticket.Cancel();
+            
+            _seats.Remove(this);
         }
 
+        //
         
-        
+        //basic association Ticket
+        [XmlIgnore]
+        private readonly HashSet<Ticket> _tickets = new HashSet<Ticket>();
+
+        [XmlIgnore]
+        public IReadOnlyCollection<Ticket> Tickets => _tickets;
+
+        internal void SetTicket(Ticket ticket)
+        {
+            if (ticket == null)
+                throw new ArgumentException("Ticket cannot be null.");
+            _tickets.Add(ticket);
+        }
+
+        internal void RemoveTicket(Ticket ticket)
+        {
+            if (ticket == null)
+                throw new ArgumentException("Ticket cannot be null.");
+            _tickets.Remove(ticket);
+        }
+
 
         //  Class extent 
         private static List<Seat> _seats = new List<Seat>();
@@ -141,6 +166,7 @@ namespace CinemaManagementSystem
                 hall.InternalClearSeats();
 
             _seats.Clear();
+            
         }
 
         public List<Seat> GetExtent() => _seats;

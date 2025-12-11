@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
@@ -105,43 +106,28 @@ namespace CinemaManagementSystem
         private readonly List<Order> _orders = new();
         [XmlIgnore]
         public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
-        
 
-        public void AddOrder(Order order)
-        {
-            if (order == null) throw new ArgumentNullException(nameof(order));
-            if (_orders.Contains(order)) return;
+
+        internal void AddOrder(Order order)
+        { 
+            if (order == null) 
+                throw new ArgumentNullException(nameof(order));
+            if (_orders.Contains(order)) 
+                throw new DuplicateException("Order", order.ToString());
 
             _orders.Add(order);
-
-            if (order.Customer != this)
-            {
-                order.AddCustomer(this);
-            }
         }
 
-        public void RemoveOrder(Order order)
+        internal void RemoveOrder(Order order)
         {
-            if (order == null) throw new ArgumentNullException(nameof(order));
-            if (!_orders.Remove(order)) return;
-
-            if (order.Customer == this)
-            {
-                order.AddCustomer(null);
-            }
-        }
-        
-        internal void ForceAddOrder(Order order)
-        {
-            if (!_orders.Contains(order))
-                _orders.Add(order);
-        }
-
-        internal void ForceRemoveOrder(Order order)
-        {
+            if (order == null) 
+                throw new ArgumentNullException(nameof(order));
+            if (!_orders.Contains(order)) 
+                throw new ExistenceException("Order", order.ToString(), "Customer");
+            
             _orders.Remove(order);
         }
-    
+       
 
         // ---------- Qualified Association: Customer → Stampcard ----------
 
