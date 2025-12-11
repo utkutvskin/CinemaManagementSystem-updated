@@ -1,5 +1,6 @@
 using System.Reflection.Metadata;
 using System.Xml.Serialization;
+using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Exceptions;
 
 namespace CinemaManagementSystem.Employees

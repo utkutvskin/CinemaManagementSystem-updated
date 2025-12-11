@@ -13,7 +13,6 @@ namespace CinemaManagementSystem.Tests
         {
           
             Hall.ClearExtent();
-            Employee.ClearAllEmployees(); 
         }
 
         [Test]

@@ -197,7 +197,7 @@ namespace CinemaManagementSystem
 
         public void DeleteHall()
         {
-            foreach (var screening in _screenings)
+            foreach (var screening in new List<Screening>(_screenings))
             {
                 screening.Cancel();
             }

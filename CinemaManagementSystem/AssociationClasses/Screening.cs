@@ -173,7 +173,7 @@ namespace CinemaManagementSystem.AssociationClasses;
             _screenings.Remove(this);
             _movie.RemoveScreeningInternal(this);
             _hall.RemoveScreeningInternal(this);
-            foreach (var t in _tickets)
+            foreach (var t in new List<Ticket>(_tickets) )
             {
                 t.Cancel();
             }

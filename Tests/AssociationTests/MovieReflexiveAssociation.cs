@@ -24,8 +24,8 @@ public class MovieReflexiveAssociation
 
         a.AddSequel(b);
 
-        Assert.IsTrue(a.Sequels.Contains(b), "A should list B as sequel");
-        Assert.IsTrue(b.Prequels.Contains(a), "B should list A as prequel (reverse connection)");
+        Assert.That(a.Sequels, Is.EqualTo(b));
+        Assert.That(b.Prequels, Is.EqualTo(a));
     }
 
 
@@ -40,8 +40,8 @@ public class MovieReflexiveAssociation
 
         a.RemoveSequel(b);
 
-        Assert.IsFalse(a.Sequels.Contains(b));
-        Assert.IsFalse(b.Prequels.Contains(a));
+        Assert.That(a.Sequels, Is.EqualTo(null));
+        Assert.That(b.Prequels, Is.EqualTo(null));
     }
 
 
@@ -76,18 +76,18 @@ public class MovieReflexiveAssociation
             97, DateTime.Now.AddYears(-1));
 
         a.AddSequel(b);
-        a.AddSequel(c);
+        a.AddPrequel(c);
 
         // sanity
-        Assert.IsTrue(b.Prequels.Contains(a));
-        Assert.IsTrue(c.Prequels.Contains(a));
+        Assert.That(a.Sequels, Is.EqualTo(b));
+        Assert.That(a.Prequels, Is.EqualTo(c));
 
         a.RemoveReflexiveAssociations();
 
-        Assert.IsEmpty(a.Sequels);
-        Assert.IsEmpty(a.Prequels);
-        Assert.IsFalse(b.Prequels.Contains(a));
-        Assert.IsFalse(c.Prequels.Contains(a));
+        Assert.That(a.Sequels, Is.EqualTo(null));
+        Assert.That(a.Prequels, Is.EqualTo(null));
+        Assert.That(c.Sequels, Is.EqualTo(null));
+        Assert.That(b.Prequels, Is.EqualTo(null));
     }
 
 
@@ -102,16 +102,13 @@ public class MovieReflexiveAssociation
             97, DateTime.Now.AddYears(-1));
 
         a.AddSequel(b);
-        Assert.IsTrue(b.Prequels.Contains(a));
+        Assert.That(b.Prequels, Is.EqualTo(a));
 
         a.RemoveSequel(b);
         a.AddSequel(c);
 
-        Assert.IsFalse(a.Sequels.Contains(b));
-        Assert.IsFalse(b.Prequels.Contains(a));
-
-        Assert.IsTrue(a.Sequels.Contains(c));
-        Assert.IsTrue(c.Prequels.Contains(a));
+        Assert.That(a.Sequels, Is.EqualTo(c));
+        Assert.That(c.Prequels, Is.EqualTo(a));
     }
 
 
@@ -124,11 +121,9 @@ public class MovieReflexiveAssociation
             95, DateTime.Now.AddYears(-1));
         a.AddSequel(b);
 
-        // call Delete() — expects implementation to clean reflexive associations
         a.Delete();
 
-        Assert.IsFalse(b.Prequels.Contains(a),
-            "After delete, other movies should no longer reference deleted movie as prequel");
+        Assert.That(b.Prequels, Is.EqualTo(null));
         Assert.IsFalse(Movie.Movies.Contains(a), "Deleted movie should be removed from extent");
     }
 }
