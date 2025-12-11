@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.Employees;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
@@ -85,13 +86,21 @@ namespace CinemaManagementSystem
             if (seat == null)
                 throw new ArgumentException("Seat cannot be null.");
             
+            if (_tickets.Count <= 1)
+                throw new MultiplicityException();
+            
             Ticket.RemoveTicket(screening, this, seat);
         }
 
-    [XmlIgnore]
-        private Customer _customer;
+        [XmlIgnore]
+        private Customer? _customer;
 
-        [XmlIgnore] public Customer Customer => _customer;
+        [XmlIgnore] public Customer? Customer => _customer;
+        
+        [XmlIgnore]
+        private Receptionist? _receptionist;
+
+        [XmlIgnore] public Receptionist? Receptionist => _receptionist;
 
         public static Order Create(Customer customer, CardInfo cardInfo, Screening screening, Seat seat, double price)
         {
@@ -116,16 +125,48 @@ namespace CinemaManagementSystem
             return order;
         }
 
-        public static void RemoveOrder(Customer customer, DateTime dateOfPurchase, Screening screening, Seat seat)
+        public static Order Create(Receptionist receptionist, CardInfo cardInfo, Screening screening, Seat seat, double price)
         {
-            if (customer == null) 
-                throw new ArgumentException("Customer cannot be null.");
+            if (receptionist == null) 
+                throw new ArgumentException("receptionist cannot be null.");
             if(screening == null)
                 throw new ArgumentException("Screening cannot be null.");
             if (seat == null)
-                throw new ArgumentException("Seat cannot be null.");
+                throw new ArgumentException("Seat cannot be null."); 
+            
+            if (!screening.Hall.Seats.Contains(seat))
+                throw new ExistenceException("Seat", seat.ToString(), "hall");
+
+            bool occupied = Ticket.Tickets.Any(t => t.Screening == screening && t.Seat == seat);
+        
+            if (occupied)
+                throw new InvalidOperationException($"Seat {seat} is already taken for this screening.");
+            
+            var order = new Order(cardInfo, receptionist, screening, seat, price);
+
+            receptionist.AddOrder(order);
+            return order;
+        }
+        
+        public static void RemoveOrder(Customer customer, DateTime dateOfPurchase)
+        {
+            if (customer == null) 
+                throw new ArgumentException("Customer cannot be null.");
             
             Order? order = _orders.FirstOrDefault(o => o.Customer == customer && o.DateOfPurchase == dateOfPurchase);
+            
+            if (order == null)
+                throw new ExistenceException("Order");
+            
+            order.Cancel();
+        }
+        
+        public static void RemoveOrder(Receptionist receptionist, DateTime dateOfPurchase)
+        {
+            if (receptionist == null) 
+                throw new ArgumentException("receptionist cannot be null.");
+            
+            Order? order = _orders.FirstOrDefault(o => o.Receptionist == receptionist && o.DateOfPurchase == dateOfPurchase);
             
             if (order == null)
                 throw new ExistenceException("Order");
@@ -136,11 +177,12 @@ namespace CinemaManagementSystem
         public void Cancel()
         {
             _orders.Remove(this);
-            foreach (var ticket in _tickets)
+            foreach (var ticket in new List<Ticket>(_tickets))
             {
                 ticket.Cancel();
             }
-            _customer.RemoveOrder(this);
+            _customer?.RemoveOrder(this);
+            _receptionist?.RemoveOrder(this);
         }
 
         //Class extent
@@ -155,15 +197,35 @@ namespace CinemaManagementSystem
             _orders.Add(order);
         }
 
+        public void ClearExtents()
+        {
+            foreach (var o in new List<Order>(_orders))
+            {
+                o.Cancel();
+            }
+        }
+
         // Constructors
         public Order() { } 
 
         private Order(CardInfo cardInfo, Customer customer, Screening screening, Seat seat, double price)
         {
             this.cardInfo = cardInfo;
-            DateOfPurchase = DateTime.Now;
+            DateOfPurchase = DateTime.Now.Date;
             
             _customer = customer;
+            
+            Ticket.CreateTicket(price, screening, this, seat);
+             
+            AddOrder(this);
+        }
+        
+        private Order(CardInfo cardInfo, Receptionist receptionist, Screening screening, Seat seat, double price)
+        {
+            this.cardInfo = cardInfo;
+            DateOfPurchase = DateTime.Now.Date;
+            
+            _receptionist = receptionist;
             
             Ticket.CreateTicket(price, screening, this, seat);
              
