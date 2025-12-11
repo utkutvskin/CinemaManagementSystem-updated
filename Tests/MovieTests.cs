@@ -249,6 +249,60 @@ namespace CinemaManagementSystem.Tests
             Assert.That(Movie.Movies[0].Title, Is.EqualTo("Avatar"));
             Assert.That(Movie.Movies[1].Title, Is.EqualTo("Titanic"));
         }
+
+        // Ensures Movie - Actor association creates correct reverse connection
+        [Test]
+        public void AddActor_ShouldCreateReverseConnection()
+        {
+            Movie movie = new Movie("Test", new List<string> { "Dir" }, new List<GenreEnum> { GenreEnum.Action },
+                ScreeningEnum._2D, 120, DateTime.Now);
+            Actor actor = new Actor("John", "Smith", GenderEnum.Male, DateTime.Now.AddYears(-30));
+    
+            movie.AddActor(actor);
+    
+            Assert.That(movie.Actors, Does.Contain(actor));
+            Assert.That(actor.Movies, Does.Contain(movie));
+        }
+        
+        // Ensures duplicate Actor reference is prevented in Movie
+        [Test]
+        public void AddActor_Duplicate_ShouldThrow()
+        {
+            Movie movie = new Movie("Test", new List<string> { "Dir" }, new List<GenreEnum> { GenreEnum.Action },
+                ScreeningEnum._2D, 120, DateTime.Now);
+            Actor actor = new Actor("John", "Smith", GenderEnum.Male, DateTime.Now.AddYears(-30));
+            movie.AddActor(actor);
+    
+            Assert.Throws<InvalidOperationException>(() => movie.AddActor(actor));
+        }
+        
+        // Removing Actor updates both sides of the association
+        [Test]
+        public void RemoveActor_ShouldRemoveFromBothSides()
+        {
+            Movie movie = new Movie("Test", new List<string> { "Dir" }, new List<GenreEnum> { GenreEnum.Action },
+                ScreeningEnum._2D, 120, DateTime.Now);
+            Actor actor = new Actor("John", "Smith", GenderEnum.Male, DateTime.Now.AddYears(-30));
+            movie.AddActor(actor);
+    
+            movie.RemoveActor(actor);
+    
+            Assert.That(movie.Actors, Does.Not.Contain(actor));
+            Assert.That(actor.Movies, Does.Not.Contain(movie));
+        }
+        
+        // Enforces multiplicity 1..* for Movie → Actor
+        [Test]
+        public void RemoveActor_LastActor_ShouldThrow()
+        {
+            Movie movie = new Movie("T", new List<string> { "A" }, new List<GenreEnum> { GenreEnum.Action },
+                ScreeningEnum._2D, 120, DateTime.Now);
+            Actor actor = new Actor("J", "S", GenderEnum.Male, DateTime.Now.AddYears(-30));
+            movie.AddActor(actor);
+    
+            Assert.Throws<InvalidOperationException>(() => movie.RemoveActor(actor));
+        }
     }
 }
+
 
