@@ -255,8 +255,8 @@ namespace CinemaManagementSystem.Tests
         public void AddActor_ShouldCreateReverseConnection()
         {
             Movie movie = new Movie("Test", new List<string> { "Dir" }, new List<GenreEnum> { GenreEnum.Action },
-                ScreeningEnum._2D, 120, DateTime.Now);
-            Actor actor = new Actor("John", "Smith", GenderEnum.Male, DateTime.Now.AddYears(-30));
+                ScreeningEnum.TwoD, 120, DateTime.Now);
+            Actor actor = new Actor("John", "Smith", GenderEnum.Men, DateTime.Now.AddYears(-30));
     
             movie.AddActor(actor);
     
@@ -269,8 +269,8 @@ namespace CinemaManagementSystem.Tests
         public void AddActor_Duplicate_ShouldThrow()
         {
             Movie movie = new Movie("Test", new List<string> { "Dir" }, new List<GenreEnum> { GenreEnum.Action },
-                ScreeningEnum._2D, 120, DateTime.Now);
-            Actor actor = new Actor("John", "Smith", GenderEnum.Male, DateTime.Now.AddYears(-30));
+                ScreeningEnum.TwoD, 120, DateTime.Now);
+            Actor actor = new Actor("John", "Smith", GenderEnum.Men, DateTime.Now.AddYears(-30));
             movie.AddActor(actor);
     
             Assert.Throws<InvalidOperationException>(() => movie.AddActor(actor));
@@ -281,8 +281,8 @@ namespace CinemaManagementSystem.Tests
         public void RemoveActor_ShouldRemoveFromBothSides()
         {
             Movie movie = new Movie("Test", new List<string> { "Dir" }, new List<GenreEnum> { GenreEnum.Action },
-                ScreeningEnum._2D, 120, DateTime.Now);
-            Actor actor = new Actor("John", "Smith", GenderEnum.Male, DateTime.Now.AddYears(-30));
+                ScreeningEnum.TwoD, 120, DateTime.Now);
+            Actor actor = new Actor("John", "Smith", GenderEnum.Men, DateTime.Now.AddYears(-30));
             movie.AddActor(actor);
     
             movie.RemoveActor(actor);
@@ -296,13 +296,14 @@ namespace CinemaManagementSystem.Tests
         public void RemoveActor_LastActor_ShouldThrow()
         {
             Movie movie = new Movie("T", new List<string> { "A" }, new List<GenreEnum> { GenreEnum.Action },
-                ScreeningEnum._2D, 120, DateTime.Now);
-            Actor actor = new Actor("J", "S", GenderEnum.Male, DateTime.Now.AddYears(-30));
+                ScreeningEnum.TwoD, 120, DateTime.Now);
+            Actor actor = new Actor("J", "S", GenderEnum.Men, DateTime.Now.AddYears(-30));
             movie.AddActor(actor);
     
             Assert.Throws<InvalidOperationException>(() => movie.RemoveActor(actor));
         }
     }
 }
+
 
 
