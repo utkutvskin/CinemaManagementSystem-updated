@@ -208,6 +208,21 @@ namespace CinemaManagementSystem
         // Constructors
         public Order() { } 
 
+       
+      
+        public Order(CardInfo cardInfo)
+        {
+            if (cardInfo == null)
+                throw new ArgumentException("CardInfo cannot be null.");
+
+            this.cardInfo = cardInfo;
+            DateOfPurchase = DateTime.Now;
+
+            _orders.Add(this);
+        }
+        
+
+        
         private Order(CardInfo cardInfo, Customer customer, Screening screening, Seat seat, double price)
         {
             this.cardInfo = cardInfo;
@@ -297,3 +312,4 @@ namespace CinemaManagementSystem
         }
     }
 }
+
