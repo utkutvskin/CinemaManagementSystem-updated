@@ -1,64 +1,58 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using CinemaManagementSystem.AssociationClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
     public class Displayer : Employee
     {
-        
-              [XmlIgnore]
-        private readonly List<Hall> _managedHalls = new List<Hall>();
-        
-        [XmlIgnore]
-        public IReadOnlyList<Hall> ManagedHalls => _managedHalls.AsReadOnly();
-        
-        public int NumberOfScreensManaged => _managedHalls.Count;
-        
-        public void AddHall(Hall hall)
+
+        private int _numberOfScreensManaged;
+
+        public int NumbersOfScreensManaged
         {
-            if (hall == null)
-                throw new ArgumentException("Hall cannot be null.");
-        
-            if (_managedHalls.Contains(hall))
-                return;
-        
-            if (hall.ManagedBy != null && hall.ManagedBy != this)
-                throw new InvalidOperationException(
-                    $"Hall {hall.Number} is already managed by another displayer.");
-        
-            _managedHalls.Add(hall);
-        
-            if (hall.ManagedBy != this)
-                hall.SetDisplayerInternal(this);
-        }
-        
-        public void RemoveHall(Hall hall)
-        {
-            if (hall == null)
-                throw new ArgumentException("Hall cannot be null.");
-        
-            if (_managedHalls.Contains(hall))
+            get => _numberOfScreensManaged;
+            private set
             {
-                _managedHalls.Remove(hall);
-        
-                if (hall.ManagedBy == this)
-                    hall.RemoveDisplayerInternal();
+                if (value < 0)
+                {
+                    throw new ArgumentException("Numbers of screens cannot be negative.");
+                }
+
+                _numberOfScreensManaged = value;
             }
         }
         
-        internal void AddHallInternal(Hall hall)
+        
+        //attribute association Displayer - Hall
+        [XmlIgnore]
+        private readonly List<DisplayerAssigment> _assigments = new();
+
+        [XmlIgnore]
+        public IReadOnlyCollection<DisplayerAssigment> Assigments => _assigments;
+        
+        
+        public void ManageHall(Hall hall, string? description = null)
         {
-            if (!_managedHalls.Contains(hall))
-                _managedHalls.Add(hall);
+            if (hall == null)
+                throw new ArgumentException("Hall cannot be null.");
+        
+            DisplayerAssigment.Create(this, hall, DateTime.Now, DateTime.Now.TimeOfDay, description);
+            NumbersOfScreensManaged++;
         }
         
-        internal void RemoveHallInternal(Hall hall)
+        public void AddDisplayerAssignmentInternal(DisplayerAssigment assigment)
         {
-            if (_managedHalls.Contains(hall))
-                _managedHalls.Remove(hall);
+            _assigments.Add(assigment);
         }
+        
+        public void RemoveDisplayerAssignmentInternal(DisplayerAssigment assigment)
+        {
+            _assigments.Remove(assigment);
+        }
+       
 
         // Constructors
         public Displayer() { }
@@ -66,27 +60,8 @@ namespace CinemaManagementSystem
         public Displayer(string name, string surname, DateTime birthDate, DateTime startDate, double salary)
             : base(name, surname, birthDate, startDate, salary)
         {
+            _numberOfScreensManaged = 0;
         }
 
-        public void ManageSelectedScreens(List<Hall> screens)
-        {
-            if (screens == null) return;
-
-            foreach (var hall in screens)
-            {
-                if (!_managedHalls.Contains(hall))
-                {
-                    try 
-                    {
-                        AddHall(hall);
-                    }
-                    catch 
-                    {
-                        // Hata olursa (örn: başkası yönetiyorsa) bu salonu atla
-                        continue; 
-                    }
-                }
-            }
-        }
     }
 }

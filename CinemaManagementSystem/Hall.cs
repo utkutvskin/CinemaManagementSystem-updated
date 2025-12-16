@@ -27,51 +27,28 @@ namespace CinemaManagementSystem
         }
 
         [XmlIgnore] public static readonly int MaxCapacity = 100;
+        
 
 
+        //attribute association Displayer - Hall
+        [XmlIgnore]
+        private readonly List<DisplayerAssigment> _assigments = new();
 
-
-
-
-
-        // Bidirectional Displayer association
-        [XmlIgnore] private Displayer _managedBy;
-
-        [XmlIgnore] public Displayer ManagedBy => _managedBy;
-
-        internal void SetDisplayerInternal(Displayer newDisplayer)
+        [XmlIgnore]
+        public IReadOnlyCollection<DisplayerAssigment> Assigments => _assigments;
+        
+        
+        public void AddDisplayerAssignmentInternal(DisplayerAssigment assigment)
         {
-
-            if (_managedBy != null && _managedBy != newDisplayer)
-            {
-                _managedBy.RemoveHallInternal(this);
-            }
-
-
-            _managedBy = newDisplayer;
-
-
-            if (newDisplayer != null)
-            {
-                newDisplayer.AddHallInternal(this);
-            }
+            _assigments.Add(assigment);
+        }
+        
+        public void RemoveDisplayerAssignmentInternal(DisplayerAssigment assigment)
+        {
+            _assigments.Remove(assigment);
         }
 
-        internal void RemoveDisplayerInternal()
-        {
-            if (_managedBy != null)
-            {
-
-                var oldDisplayer = _managedBy;
-
-
-                _managedBy = null;
-
-
-                oldDisplayer.RemoveHallInternal(this);
-            }
-        }
-
+        //
 
         //composition association (hall - seat )
 
@@ -159,13 +136,11 @@ namespace CinemaManagementSystem
 
         internal void AddScreeningInternal(Screening screening)
         {
-            if (screening == null) throw new ArgumentException("Screening cannot be null.");
             _screenings.Add(screening);
         }
 
         internal void RemoveScreeningInternal(Screening screening)
         {
-            if (screening == null) throw new ArgumentException("Screening cannot be null.");
             _screenings.Remove(screening);
         }
         //
@@ -202,11 +177,11 @@ namespace CinemaManagementSystem
             {
                 _floor.InternalRemoveHall(this);
             }
-            
 
-            if (_managedBy != null)
+
+            foreach (var assigment in new List<DisplayerAssigment>(_assigments))
             {
-                _managedBy.RemoveHallInternal(this);
+                assigment.Cancel();
             }
 
             RemoveFromExtent(this);
