@@ -2,8 +2,8 @@ namespace CinemaManagementSystem.Exceptions;
 
 public class ExistenceException : Exception
 {
-    public ExistenceException(string class1, string info, string class2)
-    :base($"{class1} : ({info}) is not assigned to this {class2}") { }
+    public ExistenceException(Object info1, Object info2)
+    :base($"{info1.GetType()} : ({info1.ToString()}) is not assigned to this {info2.GetType()} : ({info2.ToString()}") { }
 
     public ExistenceException(string class1)  : base($"This {class1} doesn't not exist") { }
 }

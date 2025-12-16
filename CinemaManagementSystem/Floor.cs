@@ -67,7 +67,7 @@ public class Floor :CleanableArea, IExtent<Floor>
             throw new ArgumentException("hall cannot be null.");
 
         if (!_halls.Contains(hall))
-            throw new ExistenceException("hall", hall.ToString(), "Floor");
+            throw new ExistenceException(hall, this);
 
         _halls.Remove(hall);
             
@@ -120,7 +120,7 @@ public class Floor :CleanableArea, IExtent<Floor>
             throw new ArgumentException("wc cannot be null.");
 
         if (!_wcs.Contains(wc))
-            throw new ExistenceException("wc", wc.ToString(), "Floor");
+            throw new ExistenceException( wc, this);
 
         _wcs.Remove(wc);
             

@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.AccessControl;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
@@ -17,7 +20,6 @@ namespace CinemaManagementSystem
         //  Attributes 
         private string _title;
 
-        // Multi-value attributes
         private List<string> _directors;
         private List<GenreEnum> _genres;
         
@@ -89,7 +91,6 @@ namespace CinemaManagementSystem
         
         
         
-        
         //Basic association Actor
         [XmlIgnore]
         private readonly HashSet<Actor> _actors = new HashSet<Actor>();
@@ -98,52 +99,53 @@ namespace CinemaManagementSystem
         public IReadOnlyCollection<Actor> Actors => _actors;
 
 
+        //method for adding the Actor to this Movie (from movie side)
         public void AddActor(Actor actor)
         {
             if (actor == null)
                 throw new ArgumentException("Actor cannot be null.");
-
-            if (_actors.Contains(actor))
-                throw new DuplicateException("Actor", actor.ToString());
-
-            _actors.Add(actor);
-
             
-            if (!actor.Movies.Contains(this))
-            {
-                actor.AddMovieInternal(this);
-            }
+            //check if actor is not already added to this movie 
+            if (_actors.Contains(actor))
+                return; //if it is added, immediately exit the method to avoid duplicates and recursion
+
+            _actors.Add(actor); 
+
+            actor.AddMovie(this); //add this movie to the actor
         }
 
+        //method for removing Actor from this movie (from movie side)
         public void RemoveActor(Actor actor)
         {
-            if (_actors.Count == 1)
-                throw new MultiplicityException();
-            
             if (actor == null)
                 throw new ArgumentException("Actor cannot be null.");
-        
-            if (!_actors.Contains(actor))
-                throw new ExistenceException("Actor", actor.ToString(), "Movie");
-        
-            _actors.Remove(actor);
-        
-            if (actor.Movies.Contains(this))
-            {
-                actor.RemoveMovieInternal(this);
-            }
-        }
-        
-
-        internal void AddActorInternal(Actor actor)
-        {
             
-            _actors.Add(actor);
+            //check if actor is added to this movie
+            if (!_actors.Contains(actor))
+                return; //if it is not added, immediately exit the method as it means that we've already removed this actor 
+            
+            //check if it is not the last actor because movie must have at least one actor
+            if (_actors.Count == 1)
+                throw new MultiplicityException();
+        
+            _actors.Remove(actor);
+        
+            actor.RemoveMovie(this); // remove this movie from actor
         }
 
-        internal void RemoveActorInternal(Actor actor)
+        //this method is used if we want to delete movie, as we check for multiplicity in simple method removeMovie, we can't delete last actor
+        internal void RemoveActorIgnoreMultiplicity(Actor actor)
         {
+            if (actor == null)
+                throw new ArgumentException("Actor cannot be null.");
+
+            //check if actor is added to this movie
+            if (!_actors.Contains(actor))
+                return; //if it is not added, immediately exit the method as it means that we've already removed this actor 
+        
             _actors.Remove(actor);
+        
+            actor.RemoveMovieIgnoreMultiplicity(this); // remove this movie from actor
         }
         
         //
@@ -151,13 +153,15 @@ namespace CinemaManagementSystem
         
         
         
-        //Attribute association
+        //Attribute association Movie - Hall 
         [XmlIgnore]
         private readonly List<Screening> _screenings = new();
 
         [XmlIgnore]
         public IReadOnlyCollection<Screening> Screenings => _screenings;
+        
 
+        //creating a screening (association between Movie - Hall) (from movie side)
         public Screening ScheduleScreening(Hall hall, DateTime date, TimeSpan hour, string language)
         {
             return Screening.Create(this, hall, date, hour, language);
@@ -184,7 +188,7 @@ namespace CinemaManagementSystem
         
          
          // Reflexive association: sequels / prequels
-         [XmlIgnore] private Movie? _sequels;
+        [XmlIgnore] private Movie? _sequels;
         [XmlIgnore]
         public Movie? Sequels => _sequels;
 
@@ -193,75 +197,64 @@ namespace CinemaManagementSystem
         public Movie? Prequels => _prequels;
         
 
+        //Adding sequel to this movie
         public void AddSequel(Movie sequel)
         {
             if (sequel == null) 
                 throw new ArgumentException("Sequel cannot be null.");
             
             if (sequel == this) 
-                throw new InvalidOperationException("A movie cannot be a sequel to itself.");
-            
-            if (_sequels == sequel) 
-                throw new DuplicateException("sequel", sequel.ToString());
+                throw new ReflexAssociationException("A movie cannot be a sequel to itself.");
+
+            //check if the sequel is not already assigned to this movie
+            if (_sequels == sequel)
+                return; //if it is assigned, immediately exit the method to avoid recursion
             
             if(_sequels != null && _sequels != sequel)
-                throw new InvalidOperationException("There is already a sequel");
+                throw new ReflexAssociationException("There is already a sequel");
                 
 
             _sequels = sequel;
 
-            if (sequel._prequels != this)
-            {
-                sequel.AddPrequelInternal(this);
-            }
+             sequel.AddPrequel(this); // assign this movie as prequel
         }
-
+        
         public void RemoveSequel(Movie sequel)
         {
             if (sequel == null) 
                 throw new ArgumentException("Sequel cannot be null.");
             
+            //check if there is a sequel to this movie
+            if(_sequels == null)
+                return; //if it is not assigned, immediately exit the method 
+            
             if (_sequels != sequel) 
-                throw new ExistenceException("Sequel" , sequel.ToString(), "Movie");
+                throw new ExistenceException(sequel, this);
 
             _sequels = null;
 
-            if (sequel._prequels == this)
-            {
-                sequel.RemovePrequelInternal();
-            }
-        }
-
-        internal void AddSequelInternal(Movie sequel)
-        {
-            _sequels = sequel;
-        }
-
-        internal void RemoveSequelInternal()
-        {
-            _sequels = null;
+            sequel.RemovePrequel(this); 
         }
         
+        //Adding prequel to this movie
         public void AddPrequel(Movie prequel)
         {
             if (prequel == null) 
                 throw new ArgumentException("Prequel cannot be null.");
             
             if (prequel == this) 
-                throw new InvalidOperationException("A movie cannot be a prequel to itself.");
+                throw new ReflexAssociationException("A movie cannot be a prequel to itself.");
             
+            //check if the prequel is not already assigned to this movie
             if (_prequels == prequel) 
-                throw new DuplicateException("Prequel", prequel.ToString());
+                return;  //if it is assigned, immediately exit the method to avoid recursion
             
             if(_prequels != null && _prequels != prequel)
-                throw new InvalidOperationException("There is already a sequel");
+                throw new ReflexAssociationException("There is already a sequel");
 
             _prequels = prequel;
 
-            if (prequel._sequels != this)
-            {
-                prequel.AddSequelInternal(this);
-            }
+            prequel.AddSequel(this); // assign this movie as sequel
         }
 
         public void RemovePrequel(Movie prequel)
@@ -269,39 +262,30 @@ namespace CinemaManagementSystem
             if (prequel == null)
                 throw new ArgumentException("Prequel cannot be null.");
             
+            //check if there is a prequel to this movie
+            if(_prequels == null)
+                return; //if it is not assigned, immediately exit the method 
+            
             if (_prequels != prequel) 
-                throw new ExistenceException("Prequel", prequel.ToString(), "Movie");
+                throw new ExistenceException(prequel, this);
 
             _prequels = null;
 
-            if (prequel._sequels == this)
-            {
-                prequel.RemoveSequelInternal();
-            }
+            prequel.RemoveSequel(this);
         }
 
-        internal void AddPrequelInternal(Movie prequel)
-        {
-            _prequels = prequel;
-        }
-
-        internal void RemovePrequelInternal()
-        {
-            _prequels = null;
-        }
-        
 
         public void RemoveReflexiveAssociations()
         {
             if(_sequels != null)
             {
-                _sequels.RemovePrequelInternal();
+                _sequels.RemovePrequel(this);
                 _sequels = null;
             }
 
             if (_prequels != null)
             {
-                _prequels.RemoveSequelInternal();
+                _prequels.RemoveSequel(this);
                 _prequels = null;
             }
         }
@@ -325,7 +309,7 @@ namespace CinemaManagementSystem
             
             foreach (var actor in new List<Actor>(_actors))
             {
-                actor.RemoveMovieInternal(this);
+                actor.RemoveMovieIgnoreMultiplicity(this);
             }
             _actors.Clear();
 
@@ -341,6 +325,15 @@ namespace CinemaManagementSystem
 
           
             _movies.Remove(this);
+        }
+        
+        //For tests 
+        public static void ClearExtent()
+        {
+            foreach (var movie in new List<Movie>(_movies))
+            {
+                movie.Delete();
+            }
         }
 
         
@@ -375,6 +368,8 @@ namespace CinemaManagementSystem
 
       
 
+        
+        
         public override string ToString()
         {
             string directors = string.Join(", ", Directors);
@@ -383,10 +378,8 @@ namespace CinemaManagementSystem
         }
 
         
-
-        
       
-        
+        //methods
         public void AddDirector(string director)
         {
 
@@ -432,15 +425,6 @@ namespace CinemaManagementSystem
                 _movies = loaded ?? new List<Movie>();
             }
             
-        }
-
-        //For tests 
-        public static void ClearExtent()
-        {
-            foreach (var movie in new List<Movie>(_movies))
-            {
-                movie.Delete();
-            }
         }
         
         public List<Movie> GetExtent() => _movies;

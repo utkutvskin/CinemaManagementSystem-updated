@@ -112,7 +112,7 @@ namespace CinemaManagementSystem
                 throw new ArgumentException("Seat cannot be null.");
 
             if (!_seats.Contains(seat))
-                throw new ExistenceException("Seat", seat.ToString(), "Hall");
+                throw new ExistenceException(seat, this);
 
             _seats.Remove(seat);
 
@@ -152,16 +152,15 @@ namespace CinemaManagementSystem
         //
 
 
-        //attribute association
+        //attribute association Movie - Hall
         [XmlIgnore] private readonly List<Screening> _screenings = new();
 
         [XmlIgnore] public IReadOnlyCollection<Screening> Screenings => _screenings;
+        
 
+        //creating a screening (association between Movie - Hall) (from hall side)
         public Screening AddScreening(Movie movie, DateTime date, TimeSpan hour, string language)
         {
-            if (movie == null)
-                throw new ArgumentException("Movie cannot be null.");
-
             return Screening.Create(movie, this, date, hour, language);
         }
         

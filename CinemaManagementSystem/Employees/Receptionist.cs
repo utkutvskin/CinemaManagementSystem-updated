@@ -55,7 +55,7 @@ namespace CinemaManagementSystem.Employees
             if (order == null) 
                 throw new ArgumentNullException(nameof(order));
             if (!_orders.Contains(order)) 
-                throw new ExistenceException("Order", order.ToString(), "Customer");
+                throw new ExistenceException(order, this);
             
             _orders.Remove(order);
         }

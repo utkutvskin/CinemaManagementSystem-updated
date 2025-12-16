@@ -13,28 +13,7 @@ public class MovieActorTest
     {
         Movie.ClearExtent();
     }
-
-    [Test]
-    public void RemoveActor_ThrowException_WhenActorDoestExists()
-    {
-        var directors = new List<string> { "Christopher Nolan" };
-        var genres = new List<GenreEnum> { GenreEnum.Sci_fi, GenreEnum.Thriller };
-
-
-
-        var actors = new List<Actor>
-        {
-            new Actor("Actor1", "Surname1", GenderEnum.Men, new DateTime(1999, 12, 2)),
-            new Actor("Actor2", "Surname2", GenderEnum.Men, new DateTime(1999, 1, 2)),
-        };
-
-        var actor = new Actor("Actor3", "Surname3", GenderEnum.Men, new DateTime(1999, 1, 2));
-        
-        var movie = new Movie("Inception", directors, genres, ScreeningEnum.IMAX, 148, new DateTime(2025, 12, 3),
-            actors);
-        
-        Assert.Throws<ExistenceException>(() => movie.RemoveActor(actor));
-    }
+    
     [Test]
     public void Constructor_CreateMovieWithActors()
     {

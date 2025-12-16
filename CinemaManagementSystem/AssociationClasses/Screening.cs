@@ -48,20 +48,6 @@ namespace CinemaManagementSystem.AssociationClasses;
                 _language = value;
             }
         }
-
-        [XmlIgnore]
-        private Movie _movie;
-
-        [XmlIgnore]
-        private Hall _hall;
-        
-        [XmlIgnore]
-        public Movie Movie => _movie;
-
-        [XmlIgnore]
-        public Hall Hall => _hall;
-
-        
         
         
         //Class extent
@@ -75,12 +61,23 @@ namespace CinemaManagementSystem.AssociationClasses;
             _screenings.Add(screening);
         }
         
+        public static void ClearExtent()
+        {
+            foreach (var s in new List<Screening>(_screenings))
+            {
+                s.Cancel();
+            }
+        }
+        
+        
+        
         //constructors
         public Screening() { }
 
         
         private Screening(Movie movie, Hall hall, DateTime date, TimeSpan hour, string language)
         {
+            //assign movie and hall to this screening
             _movie = movie;
             _hall = hall;
 
@@ -91,12 +88,27 @@ namespace CinemaManagementSystem.AssociationClasses;
             AddScreening(this);
         }
 
-        //creating a screening
+        //attribute association Movie - Hall
+        [XmlIgnore]
+        private Movie _movie;
+
+        [XmlIgnore]
+        private Hall _hall;
+        
+        [XmlIgnore]
+        public Movie Movie => _movie;
+
+        [XmlIgnore]
+        public Hall Hall => _hall;
+        
+        //creating a screening (association between Movie - Hall) (from screening side)
+        //only this method can be used for creating association from screening side (constructor is private)
         public static Screening Create(Movie movie, Hall hall, DateTime date, TimeSpan hour, string language)
         {
             if (movie == null) throw new ArgumentException("Movie cannot be null.");
             if (hall == null) throw new ArgumentException("Hall cannot be null.");
 
+            
             Screening? duplicate = _screenings
                 .FirstOrDefault(s => s.Movie == movie 
                                      && s.Date == date 
@@ -104,24 +116,30 @@ namespace CinemaManagementSystem.AssociationClasses;
                                      && s.Language == language
                                      && s.Hall == hall);
             
+            //checking duplicates
             if (duplicate != null)
-                throw new DuplicateException("Screening", duplicate.ToString());
+                throw new DuplicateException(duplicate, movie, hall);
+            
             
             if (date.Date < movie.ReleaseDate.Date)
                 throw new ArgumentException("Screening date cannot be earlier than movie release date.");
             
+            //check if hall is free at this date and time
             if(CheckOverlaps(hall, date, hour, movie.Duration))
-                throw new InvalidOperationException(
-                    $"Hall {hall.Number} is already occupied at this time.");
+                throw new OverlapsException(hall, date, hour);
 
+            //if all is correct then we create Screening using constructor
             var screening = new Screening(movie, hall, date, hour, language);
 
+            //assign this screening to the movie and hall
             movie.AddScreeningInternal(screening);
             hall.AddScreeningInternal(screening);
 
             return screening;
         }
         
+        
+        //method for checking if hall is free at this date and time
         private static bool CheckOverlaps(Hall hall, DateTime date, TimeSpan hour, int movieDuration)
         {
             DateTime newStart = date.Date + hour;
@@ -147,6 +165,7 @@ namespace CinemaManagementSystem.AssociationClasses;
             return false;
         }
 
+        //removing a screening (association between Movie - Hall) (from screening side)
         public static void RemoveScreening(Movie movie, Hall hall, DateTime date, TimeSpan hour)
         {
             if (movie == null) throw new ArgumentException("Movie cannot be null.");
@@ -183,14 +202,7 @@ namespace CinemaManagementSystem.AssociationClasses;
         {
             return $"{Movie?.Title} on {Date:dd/MM/yyyy} at {Hour:hh\\:mm} in hall {Hall?.Number} ({Language})";
         }
-
-        public static void ClearExtent()
-        {
-            foreach (var s in new List<Screening>(_screenings))
-            {
-                s.Cancel();
-            }
-        }
+        
         //
         
         //attribute association Ticket
@@ -257,14 +269,5 @@ namespace CinemaManagementSystem.AssociationClasses;
         public void ReplaceExtent(List<Screening> newExtent)
         {
             _screenings = newExtent ?? new List<Screening>();
-        }
-         //to make sure to set each hall for only one movie at that time
-        public static void ValidateNoConflict(Hall hall, DateTime date, TimeSpan time)
-        {
-            foreach (var screening in hall.Screenings)
-            {
-                if (screening.Date == date && screening.Hour == time)
-                    throw new InvalidOperationException("Hall already has a screening at this time.");
-            }
         }
     }

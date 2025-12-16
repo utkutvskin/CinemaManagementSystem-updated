@@ -68,7 +68,7 @@ namespace CinemaManagementSystem
                 throw new ArgumentException("Seat cannot be null.");
 
             if (!screening.Hall.Seats.Contains(seat))
-                throw new ExistenceException("Seat", seat.ToString(), "hall");
+                throw new ExistenceException(seat, this);
 
             bool occupied = Ticket.Tickets.Any(t => t.Screening == screening && t.Seat == seat);
 
@@ -112,7 +112,7 @@ namespace CinemaManagementSystem
                 throw new ArgumentException("Seat cannot be null."); 
             
             if (!screening.Hall.Seats.Contains(seat))
-                throw new ExistenceException("Seat", seat.ToString(), "hall");
+                throw new ExistenceException( seat.ToString(), seat);
 
             bool occupied = Ticket.Tickets.Any(t => t.Screening == screening && t.Seat == seat);
         
@@ -135,7 +135,7 @@ namespace CinemaManagementSystem
                 throw new ArgumentException("Seat cannot be null."); 
             
             if (!screening.Hall.Seats.Contains(seat))
-                throw new ExistenceException("Seat", seat.ToString(), "hall");
+                throw new ExistenceException( seat, seat);
 
             bool occupied = Ticket.Tickets.Any(t => t.Screening == screening && t.Seat == seat);
         
@@ -207,19 +207,6 @@ namespace CinemaManagementSystem
 
         // Constructors
         public Order() { } 
-
-       
-      
-        public Order(CardInfo cardInfo)
-        {
-            if (cardInfo == null)
-                throw new ArgumentException("CardInfo cannot be null.");
-
-            this.cardInfo = cardInfo;
-            DateOfPurchase = DateTime.Now;
-
-            _orders.Add(this);
-        }
         
 
         

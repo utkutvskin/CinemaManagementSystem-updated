@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
@@ -84,33 +85,60 @@ namespace CinemaManagementSystem
 
         [XmlIgnore]
         public IReadOnlyCollection<Movie> Movies => _movies;
-        
+
+        //method for adding the movie to this actor(from actor side)
         public void AddMovie(Movie movie)
         {
             if (movie == null)
                 throw new ArgumentException("Movie cannot be null.");
 
-            movie.AddActor(this);
-            
+            //check if movie is not already added to this actor 
+            if (_movies.Contains(movie))
+                return; //if so, immediately exit the method to avoid duplicates and recursion 
+
+            _movies.Add(movie);
+
+            movie.AddActor(this); //add this actor to the movie
         }
 
+        //method for removing movie from this actor (from actor side)
         public void RemoveMovie(Movie movie)
         {
             if (movie == null)
                 throw new ArgumentException("Movie cannot be null.");
+            
+            //check if movie is added to this actor
+            if (!_movies.Contains(movie))
+                return; //if it is not added, immediately exit the method as it means that we've already removed this movie 
+            
+            //check if it is not the last actor because movie must have at least one actor
+            
+            //Here we additionally check movie.Actors.Contains(this)
+            //because this function can be called from the Movie class,
+            //where we have already removed this actor and the number of actors in the movie could become 1.
+            //If it were not for this check, in this case we would remove the actor from the movie
+            //but not the movie from the actor due to multiplicity exception.
+            if (movie.Actors.Count == 1 && movie.Actors.Contains(this))
+                throw new MultiplicityException();
 
-            movie.RemoveActor(this);
-       
-        }
-        
-        internal void AddMovieInternal(Movie movie)
-        {
-            _movies.Add(movie);
-        }
-
-        internal void RemoveMovieInternal(Movie movie)
-        {
             _movies.Remove(movie);
+            
+            movie.RemoveActor(this); // remove this actor from movie
+        }
+
+        //this method is used if we want to delete movie, as we check for multiplicity in simple method removeMovie, we can't delete last actor
+        internal void RemoveMovieIgnoreMultiplicity(Movie movie)
+        {
+            if (movie == null)
+                throw new ArgumentException("Movie cannot be null.");
+            
+            //check if movie is added to this actor
+            if (!_movies.Contains(movie))
+                return; //if it is not added, immediately exit the method as it means that we've already removed this movie 
+
+            _movies.Remove(movie);
+            
+            movie.RemoveActorIgnoreMultiplicity(this); // remove this actor from movie
         }
         //
 
@@ -125,6 +153,26 @@ namespace CinemaManagementSystem
                 throw new ArgumentException("Actor cannot be null");
 
             _actors.Add(actor);
+        }
+        
+        public void Delete()
+        {
+            foreach (var movie in new List<Movie>(_movies))
+            {
+                movie.RemoveActor(this);
+            }
+            _movies.Clear();
+
+            _actors.Remove(this);
+        }
+        
+        //for testing
+        public static void ClearAllActors()
+        {
+            foreach (var actor in new List<Actor>(_actors))
+            {
+                actor.Delete();
+            }
         }
 
         
@@ -148,17 +196,6 @@ namespace CinemaManagementSystem
         public override string ToString()
         {
             return $"{Name} {Surname}, {Gender}, Age: {Age}";
-        }
-
-        public void Delete()
-        {
-            foreach (var movie in new List<Movie>(_movies))
-            {
-                movie.RemoveActorInternal(this);
-            }
-            _movies.Clear();
-
-            _actors.Remove(this);
         }
         
         
@@ -198,15 +235,6 @@ namespace CinemaManagementSystem
             }
 
             return true;
-        }
-        
-        //for testing
-        public static void ClearAllActors()
-        {
-            foreach (var actor in new List<Actor>(_actors))
-            {
-                actor.Delete();
-            }
         }
 
         public List<Actor> GetExtent() => _actors;

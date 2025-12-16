@@ -57,11 +57,8 @@ public class MovieReflexiveAssociation
         Assert.Throws<ArgumentException>(() => a.AddSequel(null));
 
         // self
-        Assert.Throws<InvalidOperationException>(() => a.AddSequel(a));
+        Assert.Throws<ReflexAssociationException>(() => a.AddSequel(a));
 
-        // duplicate
-        a.AddSequel(b);
-        Assert.Throws<DuplicateException>(() => a.AddSequel(b));
     }
 
 

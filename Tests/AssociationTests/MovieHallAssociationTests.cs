@@ -79,7 +79,7 @@ public class MovieHallAssociationTests
         
         hall.AddScreening(movie, new DateTime(2026, 12, 3), new TimeSpan(12,0,0), "English");
 
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<OverlapsException>(() =>
             movie2.ScheduleScreening(hall, new DateTime(2026, 12, 3), new TimeSpan(13, 0, 0), "English"));
 
     }
