@@ -160,17 +160,6 @@ namespace CinemaManagementSystem
         [XmlIgnore]
         public IReadOnlyCollection<Screening> Screenings => _screenings;
         
-
-        //creating a screening (association between Movie - Hall) (from movie side)
-        public Screening ScheduleScreening(Hall hall, DateTime date, TimeSpan hour, string language)
-        {
-            return Screening.Create(this, hall, date, hour, language);
-        }
-
-        public void RemoveScreening(Hall hall, DateTime date, TimeSpan hour)
-        {
-            Screening.RemoveScreening(this, hall, date, hour);
-        }
         
         internal void AddScreeningInternal(Screening screening)
         {

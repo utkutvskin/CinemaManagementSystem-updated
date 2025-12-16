@@ -165,7 +165,7 @@ namespace CinemaManagementSystem.AssociationClasses;
             return false;
         }
 
-        //removing a screening (association between Movie - Hall) (from screening side)
+        //removing a screening (association between Movie - Hall) (can be done only from screening side)
         public static void RemoveScreening(Movie movie, Hall hall, DateTime date, TimeSpan hour)
         {
             if (movie == null) throw new ArgumentException("Movie cannot be null.");
