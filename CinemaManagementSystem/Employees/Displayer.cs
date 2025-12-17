@@ -43,12 +43,12 @@ namespace CinemaManagementSystem
             NumbersOfScreensManaged++;
         }
         
-        public void AddDisplayerAssignmentInternal(DisplayerAssigment assigment)
+        internal void AddDisplayerAssignmentInternal(DisplayerAssigment assigment)
         {
             _assigments.Add(assigment);
         }
         
-        public void RemoveDisplayerAssignmentInternal(DisplayerAssigment assigment)
+        internal void RemoveDisplayerAssignmentInternal(DisplayerAssigment assigment)
         {
             _assigments.Remove(assigment);
         }

@@ -48,13 +48,13 @@ namespace CinemaManagementSystem
         [XmlIgnore]
         public Hall Hall => _hall;
 
-        internal void SetHall(Hall hall)
+        private void SetHall(Hall hall)
         {
             if (hall == null)
                 throw new ArgumentException("Hall cannot be null for a seat.");
             
             if(hall == _hall)
-                throw new DuplicateException("Hall",  hall.ToString());
+                throw new DuplicateException( hall, this);
             
             hall.SetSeat(this);
             

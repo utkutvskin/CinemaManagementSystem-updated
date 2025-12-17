@@ -55,8 +55,9 @@ public class Floor :CleanableArea, IExtent<Floor>
         foreach (var hl in _halls)
         {
             if (hl.Number == hall.Number)
-                throw new DuplicateException($"Hall", hall.ToString());
+                throw new DuplicateException(hall, this);
         }
+        
         _halls.Add(hall);
     }
 

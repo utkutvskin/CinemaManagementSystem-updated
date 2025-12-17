@@ -9,18 +9,15 @@ namespace CinemaManagementSystem.AssociationClasses;
 [Serializable]
 public class Ticket :IExtent<Ticket>
 {
-    private double _price;
+    public static double FeeForOnlinePurchase = 1.5; 
 
-    public double Price
-    {
-        get => _price;
-        set
-        {
-            if(value <= 0)
-                throw new ArgumentException("Price must be greater than zero");
-            _price = value;
-        }
-    }
+    //basic association 
+    [XmlIgnore]
+    private Seat _seat;
+        
+    [XmlIgnore]
+    public Seat Seat => _seat;
+
     
     //attribute association 
     [XmlIgnore] private Screening _screening;
@@ -46,20 +43,19 @@ public class Ticket :IExtent<Ticket>
     //constructors
     public Ticket() {}
 
-    private Ticket(double price, Screening screening, Order order, Seat seat)
+    private Ticket(Screening screening, Order order, Seat seat)
     {
         _screening = screening;
         _order = order;
         _seat = seat;
-        Price = price;
         
         AddTicket(this);
     }
 
-    internal static Ticket CreateTicket(double price, Screening screening, Order order, Seat seat)
+    internal static Ticket CreateTicket(Screening screening, Order order, Seat seat)
     {
        
-        var ticket = new Ticket(price, screening, order, seat);
+        var ticket = new Ticket(screening, order, seat);
         
         screening.AddTicketInternal(ticket);
         order.AddTicketInternal(ticket);
@@ -70,13 +66,6 @@ public class Ticket :IExtent<Ticket>
 
     internal static void RemoveTicket(Screening screening, Order order, Seat seat)
     {
-        if (screening == null) 
-            throw new ArgumentException("Screening cannot be null.");
-        if (order == null)
-            throw new ArgumentException("Order cannot be null.");
-        if (seat == null)
-            throw new ArgumentException("Seat cannot be null.");
-        
         
         Ticket? ticket = _tickets.FirstOrDefault(t => t.Screening == screening && t.Seat == seat && t.Order == order);
         
@@ -84,7 +73,7 @@ public class Ticket :IExtent<Ticket>
         {
             ticket.Cancel();
         }
-        else throw new ExistenceException("Screening" );
+        else throw new ExistenceException("Ticket" );
     }
     
     
@@ -96,19 +85,11 @@ public class Ticket :IExtent<Ticket>
         _order.RemoveTicketInternal(this);
         _seat.RemoveTicket(this);
     }
-
-    
-    //basic association 
-    [XmlIgnore]
-    private Seat _seat;
-        
-    [XmlIgnore]
-    public Seat Seat => _seat;
     
     
     public override string ToString()
     {
-        return $"Ticket Price: {Price} for {Screening.Movie}, Order: {Order.DateOfPurchase}";
+        return $"Ticket for {Screening}, Order: {Order.DateOfPurchase}";
     }
 
     public static void ClearExtent()

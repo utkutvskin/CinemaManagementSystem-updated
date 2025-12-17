@@ -26,6 +26,7 @@ namespace CinemaManagementSystem
         private ScreeningEnum _screeningType;
         private int _duration;
         private DateTime _releaseDate;
+        private double _price;
         
         public string Title
         {
@@ -86,6 +87,17 @@ namespace CinemaManagementSystem
             {
                 if(value > DateTime.Now.AddYears(1))
                     throw new ArgumentException("Release date cannot be in deep future.");
+            }
+        }
+
+        public double Price
+        {
+            get => _price;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Price must be positive.");
+                _price = value;
             }
         }
         
@@ -329,7 +341,7 @@ namespace CinemaManagementSystem
         public Movie() { }
         
 
-        public Movie(string title, List<string> directors, List<GenreEnum> genres, ScreeningEnum screeningType, int duration, DateTime releaseDate)
+        public Movie(string title, List<string> directors, List<GenreEnum> genres, ScreeningEnum screeningType, int duration, DateTime releaseDate, double price)
         {
 
             Title = title;
@@ -338,13 +350,15 @@ namespace CinemaManagementSystem
             ScreeningType = screeningType;
             Duration = duration;
             ReleaseDate = releaseDate;
-
+            Price = price;
+            
             AddMovie(this);
             
         }
         
-        public Movie(string title, List<string> directors, List<GenreEnum> genres, ScreeningEnum screeningType, int duration, DateTime releaseDate, List<Actor> actors)
-        :this(title, directors, genres, screeningType, duration, releaseDate)
+        public Movie(string title, List<string> directors, List<GenreEnum> genres, ScreeningEnum screeningType, 
+            int duration, DateTime releaseDate, double price, List<Actor> actors)
+        :this(title, directors, genres, screeningType, duration, releaseDate, price)
         {
 
             foreach (var actor in actors)

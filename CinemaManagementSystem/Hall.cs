@@ -38,18 +38,18 @@ namespace CinemaManagementSystem
         public IReadOnlyCollection<DisplayerAssigment> Assigments => _assigments;
         
         
-        public void AddDisplayerAssignmentInternal(DisplayerAssigment assigment)
+        internal void AddDisplayerAssignmentInternal(DisplayerAssigment assigment)
         {
             _assigments.Add(assigment);
         }
         
-        public void RemoveDisplayerAssignmentInternal(DisplayerAssigment assigment)
+        internal void RemoveDisplayerAssignmentInternal(DisplayerAssigment assigment)
         {
             _assigments.Remove(assigment);
         }
-
         //
 
+        
         //composition association (hall - seat )
 
         [XmlIgnore] private readonly HashSet<Seat> _seats = new HashSet<Seat>();
@@ -77,7 +77,7 @@ namespace CinemaManagementSystem
             foreach (var s in _seats)
             {
                 if (s.Number == seat.Number && s.Row == seat.Row)
-                    throw new DuplicateException("Seat", seat.ToString());
+                    throw new DuplicateException( seat, this);
             }
             _seats.Add(seat);
         }
@@ -119,7 +119,7 @@ namespace CinemaManagementSystem
 
 
             if(flr == _floor)
-                throw new DuplicateException("Floor",  flr.ToString());
+                throw new DuplicateException(  flr, this);
             
             flr.SetHall(this);
             
