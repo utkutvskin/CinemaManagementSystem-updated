@@ -1,10 +1,10 @@
 using System;
-using System.Xml.Serialization;
+using System. Xml.Serialization;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class BuffetSeller 
+    public class BuffetSeller : Employee
     {
         private decimal _totalSales;
 
@@ -23,22 +23,19 @@ namespace CinemaManagementSystem
 
         public BuffetSeller() { }
 
-         public BuffetSeller(decimal initialSales = 0)
+        public BuffetSeller(string name, string surname, DateTime birthDate,
+            DateTime startDate, double salary)
+            : base(name, surname, birthDate, startDate, salary)
         {
-            TotalSales = initialSales;
+            TotalSales = 0;
         }
-        
+
         public void SellItem()
         {
             //main logic will be implemented later
             //for now this method is used to calculate total sales
 
             TotalSales += 1;
-        }
-
-        public override string ToString()
-        {
-            return $"BuffetSeller - Total Sales: {TotalSales:C}";
         }
     }
 }
