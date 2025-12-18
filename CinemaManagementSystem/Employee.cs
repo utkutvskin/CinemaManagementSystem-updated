@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections. Generic;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
@@ -13,9 +13,8 @@ namespace CinemaManagementSystem
     [XmlInclude(typeof(Cleaner))]
     [XmlInclude(typeof(Manager))]
     [XmlInclude(typeof(BuffetSeller))]
-    [XmlInclude(typeof(Displayer))]
     [XmlInclude(typeof(Receptionist))]
-    public class Employee :IExtent<Employee>
+    public class Employee : IExtent<Employee>
     {
         [XmlIgnore]
         private static double _minSalary = 3000;
@@ -39,76 +38,6 @@ namespace CinemaManagementSystem
                 _contractType = value;
             }
         }
-
-
-// DYNAMIC + COMPLETE:  Her employee'nin bir rolü olmalı ve değiştirilebilir
-        private object _currentRole;
-        
-        [XmlElement("Cleaner", typeof(Cleaner))]
-        [XmlElement("Manager", typeof(Manager))]
-        [XmlElement("Displayer", typeof(Displayer))]
-        [XmlElement("BuffetSeller", typeof(BuffetSeller))]
-        [XmlElement("Receptionist", typeof(Receptionist))]
-        public object CurrentRole
-        {
-            get => _currentRole;
-            set
-            {
-                // COMPLETE constraint: role cannot be null
-                if (value == null)
-                    throw new ArgumentException("Employee must have a role.  Role cannot be null.");
-                
-                // Validate role type
-              if (!(value is Cleaner || value is Manager || value is BuffetSeller || 
-              value is Receptionist || value is Displayer))
-            throw new ArgumentException("Invalid role type.");
-        
-        _currentRole = value;
-    }
-}
-
-        /// <summary>
-        /// Changes employee's role (DYNAMIC)
-        /// </summary>
-        public void ChangeRole(object newRole)
-        {
-            if (newRole == null)
-                throw new ArgumentException("New role cannot be null.  Employee must always have a role.");
-            
-            // Validate role type
-            if (!(newRole is Cleaner || newRole is Manager || newRole is BuffetSeller || 
-                  newRole is Receptionist || newRole is Displayer))
-                throw new ArgumentException("Invalid role type.");
-            
-            _currentRole = newRole;
-        }
-
-        /// <summary>
-        /// Checks if employee currently has a specific role type
-        /// </summary>
-        public bool IsInRole<T>() where T : class
-        {
-            return _currentRole is T;
-        }
-
-        /// <summary>
-        /// Gets current role as specific type
-        /// </summary>
-        public T GetCurrentRole<T>() where T : class
-        {
-            return _currentRole as T;
-        }
-
-        /// <summary>
-        /// Gets current role name
-        /// </summary>
-        public string GetCurrentRoleName()
-        {
-            return _currentRole?. GetType().Name ?? "No Role";
-        }
-
-
-
 
         public string Name
         {
@@ -137,7 +66,7 @@ namespace CinemaManagementSystem
             get => _birthDate;
             set
             {
-                if(value > DateTime.Now.AddYears(-16)) 
+                if(value > DateTime.Now. AddYears(-16)) 
                     throw new ArgumentException("You must be older than 16 years old"); 
                 _birthDate = value;
                 
@@ -184,7 +113,7 @@ namespace CinemaManagementSystem
             get
             {
                 int age = DateTime.Now.Year - BirthDate.Year;
-                if (DateTime.Now.DayOfYear < BirthDate.DayOfYear)
+                if (DateTime.Now. DayOfYear < BirthDate. DayOfYear)
                     age--;
                 return age;
             }
@@ -225,11 +154,11 @@ namespace CinemaManagementSystem
       
 
         //  Constructors 
-   
-      public Employee() { }
+        public Employee() { } 
 
-     public Employee(string name, string surname, DateTime birthDate, DateTime startDate, double salary, object initialRole, DateTime? endDate = null)
+        public Employee(string name, string surname, DateTime birthDate, DateTime startDate, double salary, DateTime? endDate = null)
         {
+
             Name = name;
             Surname = surname;
             BirthDate = birthDate;
@@ -237,18 +166,14 @@ namespace CinemaManagementSystem
             EndDate = endDate;
             Salary = salary;
 
-            // COMPLETE constraint: must have initial role
-            CurrentRole = initialRole; // This will validate through property setter
-
             AddEmployee(this);
         }
 
         //  Methods 
         public override string ToString()
         {
-            string end = EndDate.HasValue ? EndDate.Value.ToShortDateString() : "Present";
-            string role = GetCurrentRoleName(); 
-            return $"{Name} {Surname}, Age: {Age}, Salary: {Salary}€, Started: {StartDate:dd/MM/yyyy}, End: {end}, Years of Service:  {YearsOfService}, Current Role: {role}";
+            string end = EndDate. HasValue ? EndDate.Value. ToShortDateString() : "Present";
+            return $"{Name} {Surname}, Age:  {Age}, Salary: {Salary}€, Started: {StartDate: dd/MM/yyyy}, End: {end}, Years of Service: {YearsOfService}";
         }
 
         //  Persistence 
@@ -261,8 +186,7 @@ namespace CinemaManagementSystem
                     typeof(Cleaner),
                     typeof(Manager),
                     typeof(BuffetSeller),
-                    typeof(Receptionist),
-                    typeof(Displayer) ,
+                    typeof(Receptionist)
                 });
         }
         public static void Save(string filePath)
@@ -274,14 +198,14 @@ namespace CinemaManagementSystem
 
         public static void Load(string filePath)
         {
-            if (!File.Exists(filePath))
+            if (! File.Exists(filePath))
                 throw new FileNotFoundException("Employee file not found.");
 
             XmlSerializer serializer = GetSerializer();
             using (StreamReader reader = new StreamReader(filePath))
             {
                 var loaded = (List<Employee>)serializer.Deserialize(reader);
-                _employees = loaded ?? new List<Employee>();
+                _employees = loaded ??  new List<Employee>();
             }
         }
 
@@ -290,10 +214,8 @@ namespace CinemaManagementSystem
 
         public void ReplaceExtent(List<Employee> newExtent)
         {
-            _employees = newExtent ?? new List<Employee>();
+            _employees = newExtent ??  new List<Employee>();
         }
     }
 
 }
-
-
