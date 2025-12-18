@@ -4,6 +4,7 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
@@ -176,45 +177,67 @@ namespace CinemaManagementSystem
             Orders[dateTimeOfCreation].Cancel();
         }
 
-        // ---------- Qualified Association: Customer → Stampcard ----------
+        public void ApplyStampCardToOrder(Order order)
+        {
+            if (order == null)
+                throw new ArgumentNullException(nameof(order));
+            
+            Stampcard stamp = _stampcards.FirstOrDefault(s => s.Value.Status == StampCardStatus.Active).Value;
+            
+            if(stamp == null)
+                throw new StampException(this, "doesn't have active stampcard");
+            
+            if(!_orders.ContainsKey(order.DateTimeOfCreation))
+                throw new ExistenceException(order, this);
+            
+            if(order.DateOfPurchase != null)
+                throw new StampException(stamp, order);
+            
+            order.ApplyStampCard(stamp);
+
+        }
+
+        //Qualified Association: Customer - Stampcard
 
         private Dictionary<DateTime, Stampcard> _stampcards = new Dictionary<DateTime, Stampcard>();
         public IReadOnlyDictionary<DateTime, Stampcard> Stampcards => _stampcards;
-
-        public bool HasStampcard(DateTime date) => _stampcards.ContainsKey(date.Date);
-
-        public void AddStampcard(Stampcard card)
-        {
-            if (card == null)
-                throw new ArgumentNullException(nameof(card));
-
-          
-            if (_stampcards.Count >= 1)
-                throw new InvalidOperationException("Customer cannot have more than one active stampcard at a time.");
-
-            DateTime key = card.DateOfPurchase.Date;
-
-            if (_stampcards.ContainsKey(key))
-                throw new InvalidOperationException("A stampcard with this purchase date already exists for this customer.");
-
-           
-            AddStampcardInternal(card);
-
         
-            if (card.Customer != this)
-                card.SetCustomer(this);
-        }
-
-      
-        internal void AddStampcardInternal(Stampcard card)
+        public bool HasActiveStampcard()
         {
-            DateTime key = card.DateOfPurchase.Date;
-            _stampcards[key] = card;
+            foreach (var keyValuePair in _stampcards)
+            {
+                if(keyValuePair.Value.Status == StampCardStatus.Active)
+                    return true;
+            }
+            
+            return false;
         }
 
         
+        public Stampcard RequestNewStampcard()
+        {
+            if(HasActiveStampcard())
+                throw new StampException(this, "already has active stampcard");
+            
+            var stamp = Stampcard.CreateStampcard(this);
+            
+            return stamp;
+            
+        }
+
+        internal void SetStampcardInternal(Stampcard stampcard)
+        {
+            if (stampcard == null) 
+                throw new ArgumentNullException(nameof(stampcard));
+            
+
+            _stampcards.Add(stampcard.DateOfPurchase, stampcard);
+        }
+
+       
         
-        public void RemoveStampcard(Stampcard card)
+        
+        internal void RemoveStampcardInternal(Stampcard card)
         {
             if (card == null)
                 throw new ArgumentNullException(nameof(card));
@@ -222,23 +245,11 @@ namespace CinemaManagementSystem
             DateTime key = card.DateOfPurchase.Date;
 
             if (!_stampcards.ContainsKey(key))
-                throw new InvalidOperationException("This stampcard is not associated with this customer.");
-
-           
-            RemoveStampcardInternal(card);
-
-            if (card.Customer == this)
-                card.SetCustomer(null);
-        }
-
-       
-        internal void RemoveStampcardInternal(Stampcard card)
-        {
-            DateTime key = card.DateOfPurchase.Date;
+                throw new ExistenceException(card, this);
+            
             _stampcards.Remove(key);
+            
         }
-        
-        
         
         
         // Persistence 

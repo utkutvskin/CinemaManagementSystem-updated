@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Employees;
+using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
@@ -54,13 +55,17 @@ namespace CinemaManagementSystem
             get
             {
                 double finalPrice = 0;
+
+                if (Stampcard != null && Stampcard.Status == StampCardStatus.ReadyForFreeMovie)
+                    return finalPrice;
                 
                 foreach (var ticket in Ticket.Tickets)
                 {
                     finalPrice += ticket.Screening.Movie.Price;
                 }
 
-                finalPrice += (Tickets.Count * Ticket.FeeForOnlinePurchase);
+                if(Customer != null )
+                    finalPrice += (Tickets.Count * Ticket.FeeForOnlinePurchase);
                 
                 return finalPrice;
             }
@@ -212,6 +217,25 @@ namespace CinemaManagementSystem
             _customer?.RemoveOrderInternal(this);
             _receptionist?.RemoveOrderInternal(this);
         }
+        
+        //StampCard -Order
+        [XmlIgnore] public Stampcard? _stampcard;
+        [XmlIgnore] public Stampcard? Stampcard => _stampcard;
+
+        internal void ApplyStampCard(Stampcard stampcard)
+        {
+
+            if (Stampcard == stampcard)
+                return;
+            
+            stampcard.AddOrder(this);
+            
+            DateOfPurchase = DateTime.Now.Date + DateTime.Now.TimeOfDay;
+            
+            _stampcard = stampcard;
+            
+        }
+        
 
         //Class extent
         private static List<Order> _orders = new List<Order>();

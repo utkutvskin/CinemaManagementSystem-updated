@@ -1,7 +1,7 @@
-using System. Reflection. Metadata;
-using System. Xml.Serialization;
+using System.Reflection.Metadata;
+using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
-using CinemaManagementSystem. Exceptions;
+using CinemaManagementSystem.Exceptions;
 
 namespace CinemaManagementSystem.Employees
 {
@@ -48,7 +48,7 @@ namespace CinemaManagementSystem.Employees
             if (_orders.ContainsKey(order.DateTimeOfCreation)) 
                 throw new DuplicateException( order, this);
 
-            _orders.Add(order. DateTimeOfCreation, order);
+            _orders.Add(order.DateTimeOfCreation, order);
         }
         
         internal void RemoveOrderInternal(Order order)
@@ -65,7 +65,7 @@ namespace CinemaManagementSystem.Employees
         
         public void CreateOrder(Screening screening, Seat seat)
         {
-            Order. Create(this, screening, seat);
+            Order.Create(this, screening, seat);
         }
 
         public void RemoveOrder(DateTime dateTimeOfCreation)
@@ -75,7 +75,7 @@ namespace CinemaManagementSystem.Employees
 
         public void ChooseNewTicket(Screening screening, Seat seat, DateTime dateTimeOfCreation)
         {
-            if (! Orders.ContainsKey(dateTimeOfCreation))
+            if (!Orders.ContainsKey(dateTimeOfCreation))
                 throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
             
             Orders[dateTimeOfCreation].AddTicket(screening, seat);
@@ -94,7 +94,7 @@ namespace CinemaManagementSystem.Employees
             if (!Orders.ContainsKey(dateTimeOfCreation))
                 throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
             
-            Orders[dateTimeOfCreation].DateOfPurchase = DateTime.Now. Date + DateTime.Now.TimeOfDay;
+            Orders[dateTimeOfCreation].DateOfPurchase = DateTime.Now.Date + DateTime.Now.TimeOfDay;
             Orders[dateTimeOfCreation].cardInfo = cardInfo;
         }
         
@@ -108,13 +108,24 @@ namespace CinemaManagementSystem.Employees
 
         public void CancelOrder(DateTime dateTimeOfCreation)
         {
-            if (! Orders.ContainsKey(dateTimeOfCreation))
+            if (!Orders.ContainsKey(dateTimeOfCreation))
                 throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
 
-            if (Orders[dateTimeOfCreation]. DateOfPurchase != null)
+            if (Orders[dateTimeOfCreation].DateOfPurchase != null)
                 throw new CancelOrderException(Orders[dateTimeOfCreation]);
             
-            Orders[dateTimeOfCreation]. Cancel();
+            Orders[dateTimeOfCreation].Cancel();
+        }
+
+        public void ApplyCustomerStampCardToOrder(Order order, Customer customer)
+        {
+            if(order == null)
+                throw new ArgumentNullException(nameof(order));
+            
+            if(customer == null)
+                throw new ArgumentNullException(nameof(customer));
+            
+            customer.ApplyStampCardToOrder(order);
         }
     }
 }
