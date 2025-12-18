@@ -95,7 +95,7 @@ public class CleanerAssignment :IExtent<CleanerAssignment>
     
     public override string ToString()
     {
-        return $"{Cleaner.Name} {Cleaner.Surname} clean {Area.Description} on {Date:dd/MM/yyyy} at {Time:hh\\:mm})";
+        return $"{Cleaner.employee.Name} {Cleaner.employee.Surname} clean {Area.Description} on {Date:dd/MM/yyyy} at {Time:hh\\:mm})";
     }
     
     public static void ClearExtent()

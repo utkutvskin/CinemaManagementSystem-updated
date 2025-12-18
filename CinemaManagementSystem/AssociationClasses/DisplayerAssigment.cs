@@ -113,7 +113,7 @@ public class DisplayerAssigment
     
     public override string ToString()
     {
-        return $"{Displayer.Name} {Displayer.Surname} clean {Hall.Description} on {Date:dd/MM/yyyy} at {Time:hh\\:mm})";
+        return $"{Displayer.employee.Name} {Displayer.employee.Surname} clean {Hall.Description} on {Date:dd/MM/yyyy} at {Time:hh\\:mm})";
     }
     
     public static void ClearExtent()

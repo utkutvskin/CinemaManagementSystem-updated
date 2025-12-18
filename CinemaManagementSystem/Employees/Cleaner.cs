@@ -5,8 +5,9 @@ using CinemaManagementSystem. Enums;
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Cleaner : Employee
+    public class Cleaner : ICleaner
     {
+        internal Employee employee { get; }
         private CleaningTypeEnum _cleaningType;
 
         public CleaningTypeEnum CleaningType
@@ -54,10 +55,10 @@ namespace CinemaManagementSystem.Employees
 
         public Cleaner() { }
 
-        public Cleaner(CleaningTypeEnum cleaningType, string name, string surname, 
-            DateTime birthDate, DateTime startDate, double salary, DateTime? endDate = null) 
-            : base(name, surname, birthDate, startDate, salary, endDate)
+        public Cleaner(CleaningTypeEnum cleaningType, Employee employee)
         {
+            this.employee = employee ?? throw new ArgumentNullException(nameof(employee));
+
             CleaningType = cleaningType;
         }
 

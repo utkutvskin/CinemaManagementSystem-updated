@@ -5,15 +5,12 @@ using System.IO;
 using System.Xml;
 using CinemaManagementSystem.ContractTypeForEmployee;
 using CinemaManagementSystem.Employees;
+using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    [XmlInclude(typeof(Cleaner))]
-    [XmlInclude(typeof(Manager))]
-    [XmlInclude(typeof(BuffetSeller))]
-    [XmlInclude(typeof(Receptionist))]
     public class Employee : IExtent<Employee>
     {
         [XmlIgnore]
@@ -133,6 +130,74 @@ namespace CinemaManagementSystem
         }
         
 
+        
+        public Manager? ManagerRole { get; private set; }
+        public Cleaner? CleanerRole { get; private set; }
+        public Displayer? DisplayerRole { get; private set; }
+        public Receptionist? ReceptionistRole { get; private set; }
+        public BuffetSeller? BuffetSellerRole { get; private set; }
+        
+        [XmlIgnore] public bool IsManager => ManagerRole != null;
+        [XmlIgnore] public bool IsCleaner => CleanerRole != null;
+        [XmlIgnore] public bool IsDisplayer => DisplayerRole != null;
+        [XmlIgnore] public bool IsReceptionist => ReceptionistRole != null;
+        [XmlIgnore] public bool IsBuffetSeller => BuffetSellerRole != null;
+        
+        public IManager GetManager()
+            => ManagerRole ?? throw new InvalidOperationException("Employee is not a Manager right now.");
+
+        public ICleaner GetCleaner()
+            => CleanerRole ?? throw new InvalidOperationException("Employee is not a Cleaner right now.");
+
+        public IDisplayer GetDisplayer()
+            => DisplayerRole ?? throw new InvalidOperationException("Employee is not a Displayer right now.");
+
+        public IReceptionist GetReceptionist()
+            => ReceptionistRole ?? throw new InvalidOperationException("Employee is not a Receptionist right now.");
+
+        public IBuffetSeller GetBuffetSeller()
+            => BuffetSellerRole ?? throw new InvalidOperationException("Employee is not a BuffetSeller right now.");
+        
+        public void ChangeToManager()
+        {
+            ClearRoles();
+            ManagerRole = new Manager(this);
+        }
+
+        public void ChangeToCleaner(CleaningTypeEnum cleaningType)
+        {
+            ClearRoles();
+            CleanerRole = new Cleaner( cleaningType, this);
+        }
+
+        public void ChangeToDisplayer()
+        {
+            ClearRoles();
+            DisplayerRole = new Displayer(this);
+        }
+
+        public void ChangeToReceptionist(int deskNumber)
+        {
+            ClearRoles();
+            ReceptionistRole = new Receptionist(this, deskNumber);
+        }
+
+        public void ChangeToBuffetSeller()
+        {
+            ClearRoles();
+            BuffetSellerRole = new BuffetSeller(this);
+        }
+        
+        private void ClearRoles()
+        {
+            ManagerRole = null;
+            CleanerRole = null;
+            DisplayerRole = null;
+            ReceptionistRole = null;
+            BuffetSellerRole = null;
+        }
+
+        
         // Class extent 
         private static List<Employee> _employees = new List<Employee>();
         public static IReadOnlyList<Employee> Employees => _employees.AsReadOnly();
@@ -177,21 +242,9 @@ namespace CinemaManagementSystem
         }
 
         //  Persistence 
-        private static XmlSerializer GetSerializer()
-        {
-            return new XmlSerializer(
-                typeof(List<Employee>),
-                new Type[]
-                {
-                    typeof(Cleaner),
-                    typeof(Manager),
-                    typeof(BuffetSeller),
-                    typeof(Receptionist)
-                });
-        }
         public static void Save(string filePath)
         {
-            var serializer = GetSerializer();
+            var serializer = new XmlSerializer(typeof(List<Employee>));
             using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
             serializer.Serialize(fs, _employees);
         }
@@ -201,7 +254,7 @@ namespace CinemaManagementSystem
             if (! File.Exists(filePath))
                 throw new FileNotFoundException("Employee file not found.");
 
-            XmlSerializer serializer = GetSerializer();
+            XmlSerializer serializer = new XmlSerializer(typeof(List<Employee>));
             using (StreamReader reader = new StreamReader(filePath))
             {
                 var loaded = (List<Employee>)serializer.Deserialize(reader);
