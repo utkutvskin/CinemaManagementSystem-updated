@@ -6,9 +6,8 @@ using CinemaManagementSystem.Exceptions;
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Receptionist : IReceptionist
+    public class Receptionist : Employee
     {
-        internal Employee employee { get; }
         private int _deskNumber;
 
         public int DeskNumber
@@ -24,9 +23,15 @@ namespace CinemaManagementSystem.Employees
 
         public Receptionist() { }
 
-        internal Receptionist(Employee employee, int deskNumber)
+        public Receptionist(int deskNumber)
         {
-            this.employee = employee ?? throw new ArgumentNullException(nameof(employee));
+            DeskNumber = deskNumber;
+        }
+
+        public Receptionist(string name, string surname, DateTime birthDate,
+            DateTime startDate, double salary, int deskNumber)
+            : base(name, surname, birthDate, startDate, salary)
+        {
             DeskNumber = deskNumber;
         }
 

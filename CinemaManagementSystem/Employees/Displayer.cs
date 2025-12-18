@@ -2,15 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
-using CinemaManagementSystem.Employees;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Displayer : IDisplayer
+    public class Displayer : Employee
     {
 
-        internal Employee employee { get; }
         private int _numberOfScreensManaged;
 
         public int NumbersOfScreensManaged
@@ -59,9 +57,9 @@ namespace CinemaManagementSystem
         // Constructors
         public Displayer() { }
 
-        public Displayer(Employee employee)
+        public Displayer(string name, string surname, DateTime birthDate, DateTime startDate, double salary)
+            : base(name, surname, birthDate, startDate, salary)
         {
-            this.employee = employee ?? throw new ArgumentNullException(nameof(employee));
             _numberOfScreensManaged = 0;
         }
 

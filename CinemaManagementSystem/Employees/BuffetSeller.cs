@@ -1,14 +1,11 @@
 using System;
 using System. Xml.Serialization;
-using CinemaManagementSystem.Employees;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class BuffetSeller : IBuffetSeller
+    public class BuffetSeller : Employee
     {
-        internal Employee employee { get; }
-        
         private decimal _totalSales;
 
 
@@ -26,11 +23,10 @@ namespace CinemaManagementSystem
 
         public BuffetSeller() { }
 
-        public BuffetSeller(Employee employee)
+        public BuffetSeller(string name, string surname, DateTime birthDate,
+            DateTime startDate, double salary)
+            : base(name, surname, birthDate, startDate, salary)
         {
-            this.employee = employee ?? throw new ArgumentNullException(nameof(employee));
-
-            
             TotalSales = 0;
         }
 

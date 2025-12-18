@@ -4,19 +4,16 @@ using CinemaManagementSystem. Enums;
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Manager : IManager
+    public class Manager : Employee
     {
-        internal Employee employee { get; }
-        
         private readonly HashSet<Employee> _managedEmployees = new();
         public IReadOnlyCollection<Employee> ManagedEmployees => _managedEmployees;
 
         public Manager() { }
 
-        public Manager(Employee employee)
-        {
-            this.employee = employee ?? throw new ArgumentNullException(nameof(employee));
-        }
+        public Manager(string name, string surname, DateTime birthDate,
+            DateTime startDate, double salary)
+            : base(name, surname, birthDate, startDate, salary) { }
 
         public void AddManagedEmployee(Employee employee)
         {
