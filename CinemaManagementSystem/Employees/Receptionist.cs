@@ -6,7 +6,7 @@ using CinemaManagementSystem.Exceptions;
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Receptionist : Employee
+    public class Receptionist 
     {
         private int _deskNumber;
 
@@ -28,12 +28,7 @@ namespace CinemaManagementSystem.Employees
             DeskNumber = deskNumber;
         }
 
-        public Receptionist(string name, string surname, DateTime birthDate,
-            DateTime startDate, double salary, int deskNumber)
-            : base(name, surname, birthDate, startDate, salary)
-        {
-            DeskNumber = deskNumber;
-        }
+       
 
         [XmlIgnore]
         private Dictionary<DateTime, Order> _orders = new();
@@ -116,7 +111,11 @@ namespace CinemaManagementSystem.Employees
             
             Orders[dateTimeOfCreation].Cancel();
         }
-
+       
+        public override string ToString()
+        {
+            return $"Receptionist - Desk {DeskNumber}, Orders: {_orders.Count}";
+}
         
     }
 }
