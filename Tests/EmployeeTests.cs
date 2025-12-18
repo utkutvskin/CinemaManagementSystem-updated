@@ -151,6 +151,55 @@ namespace CinemaManagementSystem.Tests
             Assert.That(Employee.Employees[0].Salary, Is.EqualTo(3000), "Salary should be 3000");
         }
 
+        //inheritance tests 
+        [Test]
+        public void ContractType_ShouldAllowDynamicChange_BetweenSubclasses()
+        {
+            // Create employee with base contract reference
+            var emp = new Employee("John", "Doe",
+                new DateTime(1990, 1, 1),
+                new DateTime(2015, 6, 1),
+                3000);
+        
+            // Assign FullTime contract (base -> subclass)
+            emp.ContractType = new FullTimeContract();
+            Assert.That(emp.ContractType, Is.InstanceOf<FullTimeContract>());
+            Assert.That(emp.ContractType.Name, Is.EqualTo("FullTime"));
+        
+            // Switch to PartTime contract at runtime (dynamic inheritance)
+            emp.ContractType = new PartTimeContract(hoursPerWeek: 10);
+            Assert.That(emp.ContractType, Is.InstanceOf<PartTimeContract>());
+            Assert.That(emp.ContractType.Name, Is.EqualTo("PartTime"));
+        
+            // Switch to Intern contract at runtime
+            emp.ContractType = new InternContract("ITU", duration: 6);
+            Assert.That(emp.ContractType, Is.InstanceOf<InternContract>());
+            Assert.That(emp.ContractType.Name, Is.EqualTo("Intern"));
+        }
+        
+        [Test]
+        public void ContractType_SetNull_ShouldThrowArgumentException()
+        {
+            // Employee must always have a valid contract type
+            var emp = new Employee("John", "Doe",
+                new DateTime(1990, 1, 1),
+                new DateTime(2015, 6, 1),
+                3000);
+        
+            // Setting null contract is not allowed
+            Assert.Throws<ArgumentException>(() => emp.ContractType = null);
+        }
+        
+        [Test]
+        public void PartTimeContract_InvalidHours_ShouldThrowArgumentException()
+        {
+            // Part-time contract must have valid weekly hours
+            Assert.Throws<ArgumentException>(() => new PartTimeContract(hoursPerWeek: 0));
+            Assert.Throws<ArgumentException>(() => new PartTimeContract(hoursPerWeek: 999));
+        }
+
+
         
     }
 }
+
