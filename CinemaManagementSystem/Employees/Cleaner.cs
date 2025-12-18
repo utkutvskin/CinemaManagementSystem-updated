@@ -5,7 +5,7 @@ using CinemaManagementSystem.Enums;
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Cleaner : Employee
+    public class Cleaner 
     {
         private CleaningTypeEnum _cleaningType;
 
@@ -53,13 +53,11 @@ namespace CinemaManagementSystem.Employees
         // Constructors
 
         public Cleaner() { }
-
-        public Cleaner(CleaningTypeEnum cleaningType, string name, string surname, 
-            DateTime birthDate, DateTime startDate, double salary, DateTime? endDate = null) 
-            :base(name, surname, birthDate, startDate, salary, endDate)
+        public Cleaner(CleaningTypeEnum cleaningType)
         {
             CleaningType = cleaningType;
         }
+       
 
 
         // Methods
