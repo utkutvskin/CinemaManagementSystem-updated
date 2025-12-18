@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class BuffetSeller : Employee
+    public class BuffetSeller 
     {
         private decimal _totalSales;
 
@@ -23,13 +23,11 @@ namespace CinemaManagementSystem
 
         public BuffetSeller() { }
 
-        public BuffetSeller(string name, string surname, DateTime birthDate,
-            DateTime startDate, double salary)
-            : base(name, surname, birthDate, startDate, salary)
+         public BuffetSeller(decimal initialSales = 0)
         {
-            TotalSales = 0;
+            TotalSales = initialSales;
         }
-
+        
         public void SellItem()
         {
             //main logic will be implemented later
@@ -38,6 +36,9 @@ namespace CinemaManagementSystem
             TotalSales += 1;
         }
 
-        
+        public override string ToString()
+        {
+            return $"BuffetSeller - Total Sales: {TotalSales:C}";
+        }
     }
 }
