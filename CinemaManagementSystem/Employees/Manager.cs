@@ -29,16 +29,5 @@ namespace CinemaManagementSystem.Employees
             _managedEmployees.Remove(employee);
         }
         
-        
-        public void ApplyBonusesToFullTimeEmployee(Employee employee, double bonus)
-        {
-            if (employee. ContractType is not FullTimeContract fullTime)
-                throw new ArgumentException("Employee must have full time contract to gain bonuses");
-
-            if (bonus <= 0)
-                throw new ArgumentException("Bonus must be positive.");
-
-            fullTime.AddBonus(bonus);
-        }
     }
 }

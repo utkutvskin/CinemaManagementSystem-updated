@@ -24,16 +24,111 @@ namespace CinemaManagementSystem
         private DateTime? _endDate;
         private double _salary;
 
-        private ContractType _contractType;
-        public ContractType ContractType
+        [XmlIgnore]
+        private FullTimeContract? _fullTime;
+        [XmlIgnore]
+        public FullTimeContract? FullTime => _fullTime;
+
+        private bool isFullTime => _fullTime != null;
+        private bool isPartTime => _partTime != null;
+        private bool isIntern => _intern != null;
+        
+        internal void SetFullTime(FullTimeContract fullTime)
         {
-            get => _contractType;
-            set
+            if (fullTime == null)
+                throw new ArgumentException("Full time cannot be null");
+            
+            if(isFullTime || isPartTime || isIntern)
+                throw new InvalidOperationException("There is another contract type");
+            
+            _fullTime = fullTime;
+        }
+
+        public void ChangeToFullTime()
+        {
+            if(isFullTime)
+                throw new InvalidOperationException("It has already full time");
+            
+            if(isPartTime)
             {
-                if(value == null)
-                    throw new ArgumentException("Contract type cannot be null");
-                _contractType = value;
+                _partTime.RemoveFromExtent();
+                _partTime = null;
             }
+            else if(isIntern)
+            {
+                _intern.RemoveFromExtent();
+                _intern = null;
+            }
+
+            _fullTime = new FullTimeContract(this);
+        }
+        
+        [XmlIgnore]
+        private PartTimeContract? _partTime;
+        [XmlIgnore]
+        public PartTimeContract? PartTime => _partTime;
+
+        internal void SetPartTime(PartTimeContract partTime)
+        {
+            if (partTime == null)
+                throw new ArgumentException("Part time cannot be null");
+            
+            if(isFullTime || isPartTime || isIntern)
+                throw new InvalidOperationException("There is another contract type");
+
+            _partTime = partTime;
+        }
+        
+        public void ChangeToPartTime(int hoursPerWeek)
+        {
+            if(isPartTime)
+                throw new InvalidOperationException("It has already part time");
+            
+            if(isFullTime)
+            {
+                _fullTime.RemoveFromExtent();
+                _fullTime = null;
+            }
+            else if(isIntern)
+            {
+                _intern.RemoveFromExtent();
+                _intern = null;
+            }
+
+            _partTime = new PartTimeContract(hoursPerWeek, this);
+        }
+        
+        [XmlIgnore]
+        private InternContract? _intern;
+        [XmlIgnore]
+        public InternContract? Intern => _intern;
+
+        internal void SetIntern(InternContract intern)
+        {
+            if (intern == null)
+                throw new ArgumentException("Intern cannot be null");
+            if(isFullTime || isPartTime || isIntern)
+                throw new InvalidOperationException("There is another contract type");
+
+            _intern = intern;
+        }
+        public void ChangeToIntern(string universityName, int duration)
+        {
+            if(isIntern)
+                throw new InvalidOperationException("It has already intern");
+            
+            if(isFullTime)
+            {
+                _fullTime.RemoveFromExtent();
+                _fullTime = null;
+            }
+            else if(isPartTime)
+            {
+                _partTime.RemoveFromExtent();
+                _partTime = null;
+            }
+
+            _intern = new InternContract(universityName, duration, this);
         }
 
         public string Name
