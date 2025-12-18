@@ -1,6 +1,6 @@
 using System;
 
-namespace CinemaManagementSystem
+namespace CinemaManagementSystem.Items
 {
     [Serializable]
     public abstract class Item
