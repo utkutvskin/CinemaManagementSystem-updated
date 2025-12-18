@@ -1,11 +1,11 @@
-using System.Xml.Serialization;
+using System. Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
-using CinemaManagementSystem.Enums;
+using CinemaManagementSystem. Enums;
 
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Cleaner 
+    public class Cleaner : Employee
     {
         private CleaningTypeEnum _cleaningType;
 
@@ -16,7 +16,7 @@ namespace CinemaManagementSystem.Employees
         }
 
 
-        // attribute association: CleanerAssignment 
+        // attribute association:  CleanerAssignment 
 
         [XmlIgnore]
         private List<CleanerAssignment> _assignments = new();
@@ -46,18 +46,20 @@ namespace CinemaManagementSystem.Employees
             
             var now = DateTime.Now;
 
-            return CleanerAssignment.Create(this, area, now.Date, now.TimeOfDay);
+            return CleanerAssignment.Create(this, area, now. Date, now.TimeOfDay);
         }
 
 
         // Constructors
 
         public Cleaner() { }
-        public Cleaner(CleaningTypeEnum cleaningType)
+
+        public Cleaner(CleaningTypeEnum cleaningType, string name, string surname, 
+            DateTime birthDate, DateTime startDate, double salary, DateTime? endDate = null) 
+            : base(name, surname, birthDate, startDate, salary, endDate)
         {
             CleaningType = cleaningType;
         }
-       
 
 
         // Methods
@@ -73,7 +75,5 @@ namespace CinemaManagementSystem.Employees
         {
             return $"Cleaner ({CleaningType}), Assignments: {_assignments.Count}";
         }
-
-        
     }
 }
