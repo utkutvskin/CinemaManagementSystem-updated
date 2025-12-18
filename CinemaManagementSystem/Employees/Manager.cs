@@ -1,16 +1,19 @@
 using CinemaManagementSystem.ContractTypeForEmployee;
-using CinemaManagementSystem.Enums;
+using CinemaManagementSystem. Enums;
 
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Manager 
+    public class Manager : Employee
     {
         private readonly HashSet<Employee> _managedEmployees = new();
         public IReadOnlyCollection<Employee> ManagedEmployees => _managedEmployees;
 
         public Manager() { }
 
+        public Manager(string name, string surname, DateTime birthDate,
+                       DateTime startDate, double salary)
+            : base(name, surname, birthDate, startDate, salary) { }
 
         public void AddManagedEmployee(Employee employee)
         {
@@ -29,7 +32,7 @@ namespace CinemaManagementSystem.Employees
         
         public void ApplyBonusesToFullTimeEmployee(Employee employee, double bonus)
         {
-            if (employee.ContractType is not FullTimeContract fullTime)
+            if (employee. ContractType is not FullTimeContract fullTime)
                 throw new ArgumentException("Employee must have full time contract to gain bonuses");
 
             if (bonus <= 0)
@@ -37,12 +40,5 @@ namespace CinemaManagementSystem.Employees
 
             fullTime.AddBonus(bonus);
         }
-
-        public override string ToString()
-        {
-            return $"Manager - Managing {_managedEmployees.Count} employees";
-        }
-
-        
     }
 }
