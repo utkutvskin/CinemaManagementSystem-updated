@@ -12,218 +12,83 @@ namespace CinemaManagementSystem.Person
     public class Employee : Person, IExtent<Employee>
     {
         //Attributes 
-        private DateTime _startDate;
-        private DateTime? _endDate;
-        private Role _role;
+        private bool _isFired;
+        private List<EmployeeRole>? _prevoiusEmployeeRoles;
         
-        public DateTime StartDate
+        public bool IsFired
         {
-            get => _startDate;
-            set
-            {
-                if(value > DateTime.Now )
-                    throw new ArgumentException("Start date cannot be greater than today.");
-                _startDate = value;
-            }
+            get => _isFired;
+            set => _isFired = value;
         }
-        public DateTime? EndDate
+        public List<EmployeeRole>? PrevoiusEmployeeRoles
         {
-            get => _endDate;
-            set
-            {
-                if(value > DateTime.Now || value < StartDate)
-                    throw new ArgumentException("End date cannot be greater than today or less than start date.");
-                _endDate = value;
-            }
-        }
-        public Role Role {
-            get => _role;
-            set => _role = value;
+            get => _prevoiusEmployeeRoles;
+            set => _prevoiusEmployeeRoles = value;
         }
         
         [XmlIgnore]
-        private FullTimeContract? _fullTime;
+        private EmployeeRole? _currentRole;
         [XmlIgnore]
-        public FullTimeContract? FullTime => _fullTime;
-        
-        [XmlIgnore]
-        private PartTimeContract? _partTime;
-        [XmlIgnore]
-        public PartTimeContract? PartTime => _partTime;
-        
-        [XmlIgnore]
-        private InternContract? _intern;
-        [XmlIgnore]
-        public InternContract? Intern => _intern;
+        public EmployeeRole? CurrentRole => _currentRole;
 
-        private bool isFullTime => _fullTime != null;
-        private bool isPartTime => _partTime != null;
-        private bool isIntern => _intern != null;
-        
-        internal void SetFullTime(FullTimeContract fullTime)
+        internal void SetRole(EmployeeRole role)
         {
-            if (fullTime == null)
-                throw new ArgumentException("Full time cannot be null");
-            
-            if(isFullTime || isPartTime || isIntern)
-                throw new InvalidOperationException("There is another contract type");
-            
-            _fullTime = fullTime;
-        }
-        public void ChangeToFullTime(double salary )
-        {
-            if(isFullTime)
-                throw new InvalidOperationException("It has already full time");
-            
-            if(isPartTime)
-            {
-                _partTime.RemoveFromExtent();
-                _partTime = null;
-            }
-            else if(isIntern)
-            {
-                _intern.RemoveFromExtent();
-                _intern = null;
-            }
+            if(role == null)
+                throw new ArgumentException("role cannot be null");
+            if(_currentRole != null)
+                throw new InvalidOperationException("Current role already set");
+            if (role.EndDate != null)
+                throw new InvalidOperationException("Cannot set an already-ended role as current");
 
-            _fullTime = new FullTimeContract(this, salary);
+            _currentRole = role;
         }
 
-        internal void SetPartTime(PartTimeContract partTime)
+        private void ChangeRole()
         {
-            if (partTime == null)
-                throw new ArgumentException("Part time cannot be null");
-            
-            if(isFullTime || isPartTime || isIntern)
-                throw new InvalidOperationException("There is another contract type");
+            if (_currentRole == null)
+                throw new InvalidOperationException("Employee has no current role.");
 
-            _partTime = partTime;
-        }
-        public void ChangeToPartTime(double hourlyRate)
-        {
-            if(isPartTime)
-                throw new InvalidOperationException("It has already part time");
-            
-            if(isFullTime)
-            {
-                _fullTime.RemoveFromExtent();
-                _fullTime = null;
-            }
-            else if(isIntern)
-            {
-                _intern.RemoveFromExtent();
-                _intern = null;
-            }
+            _currentRole.EndDate = DateTime.Now;
 
-            _partTime = new PartTimeContract(this, hourlyRate);
-        }
+            _prevoiusEmployeeRoles ??= new List<EmployeeRole>();
+            _prevoiusEmployeeRoles.Add(_currentRole);
 
-        internal void SetIntern(InternContract intern)
-        {
-            if (intern == null)
-                throw new ArgumentException("Intern cannot be null");
-            if(isFullTime || isPartTime || isIntern)
-                throw new InvalidOperationException("There is another contract type");
-
-            _intern = intern;
-        }
-        public void ChangeToIntern(string universityName, double? dailySalary = null)
-        {
-            if(isIntern)
-                throw new InvalidOperationException("It has already intern");
-            
-            if(isFullTime)
-            {
-                _fullTime.RemoveFromExtent();
-                _fullTime = null;
-            }
-            else if(isPartTime)
-            {
-                _partTime.RemoveFromExtent();
-                _partTime = null;
-            }
-
-            _intern = new InternContract(this, universityName, dailySalary);
+            _currentRole = null;
         }
         
-        //Reflex Association
-        [XmlIgnore]
-        private HashSet<Employee>? _previousRoles = new HashSet<Employee>();
-        [XmlIgnore]
-        public IReadOnlySet<Employee>? PreviousRoles => _previousRoles;
-        
-        [XmlIgnore]
-        private Employee? _futureRole;
-        [XmlIgnore]
-        public Employee? FutureRole => _futureRole;
-
-        public void ChangeRoleToReceptionist(int deskNumber)
+        public EmployeeRole ChangeRoleToReceptionist(int deskNumber)
         {
-            if(Role == Role.Receptionist)
-                throw new RoleException(Role.Receptionist);
-            
-            Receptionist rec = new Receptionist(Name, Surname, BirthDate, Gender, deskNumber);
-            EndDate = DateTime.Now;
-
-            ChangeRole(rec);
+            ChangeRole();
+            Receptionist rec = new Receptionist(deskNumber, this);
+            return rec;
         }
-        public void ChangeRoleToManager()
+        public EmployeeRole ChangeRoleToManager()
         {
-            if(Role == Role.Manager)
-                throw new RoleException(Role.Manager);
+            ChangeRole();
             
-            Manager man = new Manager(Name, Surname, BirthDate, Gender);
-            EndDate = DateTime.Now;
-
-            ChangeRole(man);
+            Manager rec = new Manager( this);
+            return rec;
         }
-        public void ChangeRoleToBuffetSeller()
+        public EmployeeRole ChangeRoleToCleaner(CleaningTypeEnum cleaningType)
         {
-            if(Role == Role.BuffetSeller)
-                throw new RoleException(Role.BuffetSeller);
+            ChangeRole();
             
-            BuffetSeller bs = new BuffetSeller(Name, Surname, BirthDate, Gender);
-            EndDate = DateTime.Now;
-
-            ChangeRole(bs);
+            Cleaner rec = new Cleaner(cleaningType, this);
+            return rec;
         }
-        public void ChangeRoleToCleaner(CleaningTypeEnum type)
+        public EmployeeRole ChangeRoleToDisplayer()
         {
-            if(Role == Role.Cleaner)
-                throw new RoleException(Role.Cleaner);
+            ChangeRole();
             
-            Cleaner cl = new Cleaner(Name, Surname, BirthDate, Gender, type);
-            EndDate = DateTime.Now;
-
-            ChangeRole(cl);
+            Displayer rec = new Displayer( this);
+            return rec;
         }
-        public void ChangeRoleToDisplayer( )
+        public EmployeeRole ChangeRoleToBuffetSeller()
         {
-            if(Role == Role.Displayer)
-                throw new RoleException(Role.Displayer);
+            ChangeRole();
             
-            Displayer ds = new Displayer(Name, Surname, BirthDate, Gender);
-            EndDate = DateTime.Now;
-
-            ChangeRole(ds);
-        }
-
-        private void ChangeRole(Employee empl)
-        {
-            empl._previousRoles = new HashSet<Employee>();
-
-            if (_previousRoles != null)
-            {
-                foreach (var employee in _previousRoles)
-                {
-                    empl._previousRoles.Add(employee);
-                    employee._futureRole = empl;
-                }
-                _previousRoles.Clear();
-            }
-            
-            _futureRole = empl;
-            empl._previousRoles.Add(this);
+            BuffetSeller rec = new BuffetSeller( this);
+            return rec;
         }
         
         // Class extent 
@@ -244,8 +109,7 @@ namespace CinemaManagementSystem.Person
         public Employee(string name, string surname, DateTime birthDate, GenderEnum gender, Role role)
             :base(name, surname, gender, birthDate)
         {
-            StartDate = DateTime.Now;
-            Role = role;
+            IsFired = false;
             
             AddEmployee(this);
         }
@@ -253,8 +117,7 @@ namespace CinemaManagementSystem.Person
         //  Methods 
         public override string ToString()
         {
-            string end = EndDate. HasValue ? EndDate.Value.ToShortDateString() : "Present";
-            return $"{Name} {Surname}, Age:  {Age}, Started: {StartDate: dd/MM/yyyy}, End: {end}";
+            return $"{Name} {Surname}, Age:  {Age}";
         }
 
         //  Persistence 

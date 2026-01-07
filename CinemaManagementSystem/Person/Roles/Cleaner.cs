@@ -3,11 +3,12 @@ using CinemaManagementSystem.Area;
 using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem. Enums;
 using CinemaManagementSystem.Person;
+using CinemaManagementSystem.Person.Roles;
 
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Cleaner : Employee
+    public class Cleaner : EmployeeRole
     {
         private CleaningTypeEnum _cleaningType;
 
@@ -56,8 +57,8 @@ namespace CinemaManagementSystem.Employees
 
         public Cleaner() { }
 
-        public Cleaner(string name, string surname, DateTime birthDate, GenderEnum gender, CleaningTypeEnum cleaningType)
-            : base(name, surname, birthDate, gender, Role.Cleaner)
+        public Cleaner(CleaningTypeEnum cleaningType, Employee employee) :base(employee)
+        
         {
             CleaningType = cleaningType;
         }

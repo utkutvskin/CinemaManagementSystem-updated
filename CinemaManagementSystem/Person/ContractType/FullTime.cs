@@ -1,5 +1,6 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Exceptions;
+using CinemaManagementSystem.Person.Roles;
 
 namespace CinemaManagementSystem.Person.ContractType
 {
@@ -29,11 +30,11 @@ namespace CinemaManagementSystem.Person.ContractType
         }
         
         [XmlIgnore]
-        private Employee _employee;
+        private EmployeeRole _employee;
         [XmlIgnore]
-        public Employee Employee => _employee;
+        public EmployeeRole Employee => _employee;
 
-        private void SetEmployee(Employee employee)
+        private void SetEmployeeRole(EmployeeRole employee)
         {
             if(employee == null)
                 throw new ArgumentNullException(nameof(employee));
@@ -63,12 +64,12 @@ namespace CinemaManagementSystem.Person.ContractType
             _contracts.Remove(this);
         }
         
-        public FullTimeContract(Employee employee, double salary)
+        public FullTimeContract(EmployeeRole employee, double salary)
         {
             Salary = salary;
             Bonuses = new Dictionary<DateTime, double>();
             
-            SetEmployee(employee);
+            SetEmployeeRole(employee);
             AddContract(this);
         }
 

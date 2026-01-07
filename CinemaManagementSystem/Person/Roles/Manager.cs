@@ -1,21 +1,18 @@
 
 using CinemaManagementSystem. Enums;
 using CinemaManagementSystem.Person;
+using CinemaManagementSystem.Person.Roles;
 
 namespace CinemaManagementSystem.Employees
 {
     [Serializable]
-    public class Manager : Employee
+    public class Manager : EmployeeRole
     {
         private readonly HashSet<Employee> _managedEmployees = new();
         public IReadOnlyCollection<Employee> ManagedEmployees => _managedEmployees;
 
-        public Manager() { }
-
-        public Manager(string name, string surname, DateTime birthDate, GenderEnum gender)
-            : base(name, surname, birthDate, gender, Role.Manager)
+        public Manager(Employee employee) :base(employee)
         {
-            
         }
 
         public void AddManagedEmployee(Employee employee)

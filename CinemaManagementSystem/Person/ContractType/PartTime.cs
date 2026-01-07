@@ -1,6 +1,7 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.Person;
+using CinemaManagementSystem.Person.Roles;
 
 namespace CinemaManagementSystem.Person.ContractType
 {
@@ -32,11 +33,11 @@ namespace CinemaManagementSystem.Person.ContractType
         
         
         [XmlIgnore]
-        private Employee _employee;
+        private EmployeeRole _employee;
         [XmlIgnore]
-        public Employee Employee => _employee;
+        public EmployeeRole Employee => _employee;
         
-        private void SetEmployee(Employee employee)
+        private void SetEmployeeRole(EmployeeRole employee)
         {
             if(employee == null)
                 throw new ArgumentNullException(nameof(employee));
@@ -68,11 +69,11 @@ namespace CinemaManagementSystem.Person.ContractType
         
         public PartTimeContract() { }
 
-        public PartTimeContract(Employee employee, double hourlyRate)
+        public PartTimeContract(EmployeeRole employee, double hourlyRate)
         {
             HourlyRate = hourlyRate;
             
-            SetEmployee(employee);
+            SetEmployeeRole(employee);
             AddContract(this);
         }
 

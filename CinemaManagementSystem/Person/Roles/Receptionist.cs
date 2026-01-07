@@ -6,7 +6,7 @@ using CinemaManagementSystem.Exceptions;
 namespace CinemaManagementSystem.Person.Roles
 {
     [Serializable]
-    public class Receptionist : Employee
+    public class Receptionist : EmployeeRole
     {
         private int _deskNumber;
 
@@ -23,8 +23,7 @@ namespace CinemaManagementSystem.Person.Roles
 
         public Receptionist() { }
 
-        public Receptionist(string name, string surname, DateTime birthDate, GenderEnum gender, int deskNumber)
-            : base(name, surname, birthDate, gender, Role.Receptionist)
+        public Receptionist(int deskNumber, Employee employee) :base(employee)
         {
             DeskNumber = deskNumber;
         }

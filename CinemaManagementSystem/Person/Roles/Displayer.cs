@@ -5,11 +5,12 @@ using CinemaManagementSystem.Area;
 using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Person;
+using CinemaManagementSystem.Person.Roles;
 
 namespace CinemaManagementSystem
 {
     [Serializable]
-    public class Displayer : Employee
+    public class Displayer : EmployeeRole
     {
 
         private int _numberOfScreensManaged;
@@ -58,10 +59,8 @@ namespace CinemaManagementSystem
        
 
         // Constructors
-        public Displayer() { }
 
-        public Displayer(string name, string surname, DateTime birthDate, GenderEnum gender)
-            : base(name, surname, birthDate, gender, Role.Displayer)
+        public Displayer(Employee employee) :base(employee)
         {
             _numberOfScreensManaged = 0;
         }
