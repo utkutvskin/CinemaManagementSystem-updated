@@ -3,6 +3,14 @@ using System;
 namespace CinemaManagementSystem.Items
 {
     [Serializable]
+
+    // INHERITANCE IMPLEMENTATION: Polymorphism Support for XML Serialization
+    // These attributes register the derived classes (Snack, Glass3D) to the serializer.
+    // This ensures that when we save a List<Item>, the system remembers whether
+    // a specific item is a Snack or a Glass3D.
+    [XmlInclude(typeof(Snack))]
+    [XmlInclude(typeof(Glass3D))]
+    
     public abstract class Item
     {
         //attributes
