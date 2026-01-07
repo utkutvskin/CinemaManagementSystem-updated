@@ -1,9 +1,7 @@
 
 using CinemaManagementSystem. Enums;
-using CinemaManagementSystem.Person;
-using CinemaManagementSystem.Person.Roles;
 
-namespace CinemaManagementSystem.Employees
+namespace CinemaManagementSystem.People.Roles
 {
     [Serializable]
     public class Manager : EmployeeRole

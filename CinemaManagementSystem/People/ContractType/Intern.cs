@@ -1,9 +1,8 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Exceptions;
-using CinemaManagementSystem.Person;
-using CinemaManagementSystem.Person.Roles;
+using CinemaManagementSystem.People.Roles;
 
-namespace CinemaManagementSystem.Person.ContractType
+namespace CinemaManagementSystem.People.ContractType
 {
     [Serializable]
     public class InternContract 

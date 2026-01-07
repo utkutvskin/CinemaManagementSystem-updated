@@ -5,10 +5,10 @@ using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
-namespace CinemaManagementSystem.Person
+namespace CinemaManagementSystem.People
 {
     [Serializable]
-    public class Customer: Person, IExtent<Customer>
+    public class Customer: People.Person, IExtent<Customer>
     {
         private HashSet<CardInfo>? _cards;
 

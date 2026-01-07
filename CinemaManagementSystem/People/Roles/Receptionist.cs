@@ -3,7 +3,7 @@ using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 
-namespace CinemaManagementSystem.Person.Roles
+namespace CinemaManagementSystem.People.Roles
 {
     [Serializable]
     public class Receptionist : EmployeeRole

@@ -4,8 +4,8 @@ using System.IO;
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
+using CinemaManagementSystem.People;
 using CinemaManagementSystem.PersistenceForAllClasses;
-using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem
 {

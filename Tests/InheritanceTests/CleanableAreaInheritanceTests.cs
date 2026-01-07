@@ -14,7 +14,7 @@ namespace CinemaManagementSystem.Tests.InheritanceTests
             // Creating different concrete types to show Standard Inheritance.
             var hall = new Hall(1);
             var floor = new Floor(1);
-            var wc = new WC(WCTypeEnum.Ladies, floor);
+            var wc = new WC(WCTypeEnum.Female, floor);
 
             // Proving Polymorphism. Storing Hall, Floor, and WC in a single 'CleanableArea' list.
             List<CleanableArea> cleaningList = new List<CleanableArea> { hall, floor, wc };

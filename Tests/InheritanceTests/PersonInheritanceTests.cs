@@ -1,8 +1,6 @@
 using NUnit.Framework;
-using CinemaManagementSystem.Person;
 using CinemaManagementSystem.Enums;
-using CinemaManagementSystem.Person.Roles;
-using System;
+using CinemaManagementSystem.People;
 
 namespace CinemaManagementSystem.Tests.InheritanceTests
 {
@@ -13,8 +11,8 @@ namespace CinemaManagementSystem.Tests.InheritanceTests
         public void StandardInheritance_CustomerAndEmployee_ArePeople()
         {
             // Creating instances of derived classes.
-            var customer = new Customer("Ali", "Veli", GenderEnum.Male, new DateTime(1990, 1, 1));
-            var employee = new Employee("Ayse", "Yilmaz", new DateTime(1995, 5, 5), GenderEnum.Female, Role.Manager);
+            var customer = new Customer("Ali", "Veli", GenderEnum.Men, new DateTime(1990, 1, 1));
+            var employee = new Employee("Ayse", "Yilmaz", new DateTime(1995, 5, 5), GenderEnum.Female);
 
             // Proving the 'IS-A' relationship. Both Customer and Employee are treated as 'Person'.
             Assert.IsInstanceOf<Person>(customer);

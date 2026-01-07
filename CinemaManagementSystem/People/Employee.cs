@@ -1,15 +1,12 @@
 using System.Xml.Serialization;
-using CinemaManagementSystem.Employees;
 using CinemaManagementSystem.Enums;
-using CinemaManagementSystem.Exceptions;
+using CinemaManagementSystem.People.Roles;
 using CinemaManagementSystem.PersistenceForAllClasses;
-using CinemaManagementSystem.Person.ContractType;
-using CinemaManagementSystem.Person.Roles;
 
-namespace CinemaManagementSystem.Person
+namespace CinemaManagementSystem.People
 {
     [Serializable]
-    public class Employee : Person, IExtent<Employee>
+    public class Employee : People.Person, IExtent<Employee>
     {
         //Attributes 
         private bool _isFired;
@@ -106,7 +103,7 @@ namespace CinemaManagementSystem.Person
         //  Constructors 
         public Employee() { } 
 
-        public Employee(string name, string surname, DateTime birthDate, GenderEnum gender, Role role)
+        public Employee(string name, string surname, DateTime birthDate, GenderEnum gender)
             :base(name, surname, gender, birthDate)
         {
             IsFired = false;

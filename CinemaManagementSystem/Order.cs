@@ -4,12 +4,11 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
-using CinemaManagementSystem.Employees;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
+using CinemaManagementSystem.People;
+using CinemaManagementSystem.People.Roles;
 using CinemaManagementSystem.PersistenceForAllClasses;
-using CinemaManagementSystem.Person;
-using CinemaManagementSystem.Person.Roles;
 
 namespace CinemaManagementSystem
 {

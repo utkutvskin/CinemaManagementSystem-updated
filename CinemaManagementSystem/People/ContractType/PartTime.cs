@@ -1,9 +1,8 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Exceptions;
-using CinemaManagementSystem.Person;
-using CinemaManagementSystem.Person.Roles;
+using CinemaManagementSystem.People.Roles;
 
-namespace CinemaManagementSystem.Person.ContractType
+namespace CinemaManagementSystem.People.ContractType
 {
     [Serializable]
     public class PartTimeContract 
@@ -26,7 +25,7 @@ namespace CinemaManagementSystem.Person.ContractType
         
         //Derived
         [XmlIgnore]
-        public double HoursPerMonth => HourlyRate * 1;
+        public double HoursPerMonth => 10;
         
         [XmlIgnore]
         public double SalaryPerMonth => HourlyRate * HoursPerMonth;

@@ -1,7 +1,7 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
 
-namespace CinemaManagementSystem.Person;
+namespace CinemaManagementSystem.People;
 
 
 public abstract class Person

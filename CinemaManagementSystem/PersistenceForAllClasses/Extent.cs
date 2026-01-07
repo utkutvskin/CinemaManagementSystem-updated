@@ -1,6 +1,6 @@
 using CinemaManagementSystem.Area;
 using CinemaManagementSystem.AssociationClasses;
-using CinemaManagementSystem.Person;
+using CinemaManagementSystem.People;
 
 namespace CinemaManagementSystem.PersistenceForAllClasses
 {

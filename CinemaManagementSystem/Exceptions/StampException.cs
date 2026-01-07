@@ -1,4 +1,4 @@
-using CinemaManagementSystem.Person;
+using CinemaManagementSystem.People;
 
 namespace CinemaManagementSystem.Exceptions;
 

@@ -11,7 +11,6 @@ using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
-using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem
 {

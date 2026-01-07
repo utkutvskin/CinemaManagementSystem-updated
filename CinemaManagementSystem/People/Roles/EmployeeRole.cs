@@ -1,9 +1,9 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
-using CinemaManagementSystem.Person.ContractType;
+using CinemaManagementSystem.People.ContractType;
 
-namespace CinemaManagementSystem.Person.Roles;
+namespace CinemaManagementSystem.People.Roles;
 
 public class EmployeeRole
 {
@@ -80,6 +80,13 @@ public class EmployeeRole
             _fullTime = new FullTimeContract(this, salary);
         }
 
+        public void SetFullTime(double salary)
+        {
+            if(isFullTime || isPartTime || isIntern)
+                throw new InvalidOperationException("There is another contract type");
+            _fullTime = new FullTimeContract(this, salary);
+        }
+
         internal void SetPartTime(PartTimeContract partTime)
         {
             if (partTime == null)
@@ -106,6 +113,12 @@ public class EmployeeRole
                 _intern = null;
             }
 
+            _partTime = new PartTimeContract(this, hourlyRate);
+        }
+        public void SetPartTime(double hourlyRate)
+        {
+            if(isFullTime || isPartTime || isIntern)
+                throw new InvalidOperationException("There is another contract type");
             _partTime = new PartTimeContract(this, hourlyRate);
         }
 
@@ -136,7 +149,12 @@ public class EmployeeRole
 
             _intern = new InternContract(this, universityName, dailySalary);
         }
-
+        public void SetIntern(string universityName, double? dailySalary = null)
+        {
+            if(isFullTime || isPartTime || isIntern)
+                throw new InvalidOperationException("There is another contract type");
+            _intern = new InternContract(this, universityName, dailySalary);
+        }
         [XmlIgnore]
         private Employee _employee;
         [XmlIgnore]

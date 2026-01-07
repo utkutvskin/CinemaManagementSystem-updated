@@ -4,10 +4,8 @@ using System.Xml.Serialization;
 using CinemaManagementSystem.Area;
 using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Enums;
-using CinemaManagementSystem.Person;
-using CinemaManagementSystem.Person.Roles;
 
-namespace CinemaManagementSystem
+namespace CinemaManagementSystem.People.Roles
 {
     [Serializable]
     public class Displayer : EmployeeRole
