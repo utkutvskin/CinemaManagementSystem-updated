@@ -4,6 +4,13 @@ using CinemaManagementSystem.AssociationClasses;
 namespace CinemaManagementSystem.Area;
 
 [Serializable]
+//INHERITANCE IMPLEMENTATION: Polymorphism Support for XML Serialization
+//Since CleanableArea is abstract, the XmlSerializer needs to know exactly 
+// which concrete classes (Hall, Floor, WC) it might encounter in the list.
+[XmlInclude(typeof(Hall))]
+[XmlInclude(typeof(Floor))]
+[XmlInclude(typeof(WC))]
+
 public abstract class CleanableArea
 {
     private string _description;
