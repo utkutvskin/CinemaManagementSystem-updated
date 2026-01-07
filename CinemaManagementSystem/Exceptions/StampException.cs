@@ -1,3 +1,5 @@
+using CinemaManagementSystem.Person;
+
 namespace CinemaManagementSystem.Exceptions;
 
 public class StampException

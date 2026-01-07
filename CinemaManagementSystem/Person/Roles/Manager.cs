@@ -1,5 +1,6 @@
-using CinemaManagementSystem.ContractTypeForEmployee;
+
 using CinemaManagementSystem. Enums;
+using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem.Employees
 {
@@ -11,9 +12,11 @@ namespace CinemaManagementSystem.Employees
 
         public Manager() { }
 
-        public Manager(string name, string surname, DateTime birthDate,
-            DateTime startDate, double salary)
-            : base(name, surname, birthDate, startDate, salary) { }
+        public Manager(string name, string surname, DateTime birthDate, GenderEnum gender)
+            : base(name, surname, birthDate, gender, Role.Manager)
+        {
+            
+        }
 
         public void AddManagedEmployee(Employee employee)
         {

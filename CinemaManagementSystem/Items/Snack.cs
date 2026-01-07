@@ -6,14 +6,22 @@ namespace CinemaManagementSystem.Items
     public class Snack : Item
     {
         // Simple snack item (e.g. popcorn)
-        public int Calories { get; }
+        private int _calories;
 
-        public Snack(string name, double price, int calories)
-            : base(name, price)
+        public int Calories
         {
-            if (calories <= 0)
-                throw new ArgumentException("Calories must be positive.");
+            get => _calories;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentException("Calories cannot be negative");
+                _calories = value;
+            }
+        }
 
+        public Snack(string name, double price, int calories, int quantity)
+            : base(name, price, quantity)
+        {
             Calories = calories;
         }
     }

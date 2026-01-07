@@ -1,74 +1,28 @@
-using System;
-using System.Collections.Generic;
-using System.Xml.Serialization;
-using System.IO;
 using System.Xml;
+using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
-namespace CinemaManagementSystem
+namespace CinemaManagementSystem.Person
 {
     [Serializable]
-    public class Customer: IExtent<Customer>
+    public class Customer: Person, IExtent<Customer>
     {
-        //Attributes
-        private string _name;
-        private string _surname;
-        private DateTime _dateOfBirth;
-        public string Name
-        {
-            get => _name;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Name cannot be empty.");
-                _name = value;
-            }
-        }
+        private HashSet<CardInfo>? _cards;
 
-        public string Surname
+        public HashSet<CardInfo>? Cards
         {
-            get => _surname;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Surname cannot be empty.");
-                _surname = value;
-            }
-        }
-
-        public DateTime DateOfBirth
-        {
-            get => _dateOfBirth;
-            set
-            {
-                if(value > DateTime.Now.AddYears(-16))
-                    throw new ArgumentException("You must be older than 16 years old");
-                _dateOfBirth = value;
-            }
-        }  
-
-        
-        //Derived
-        [XmlIgnore]
-        public int Age
-        {
-            get
-            {
-                int age = DateTime.Now.Year - DateOfBirth.Year;
-                if (DateTime.Now.DayOfYear < DateOfBirth.DayOfYear)
-                    age--;
-                return age;
-            }
+            get => _cards;
+            set => _cards = value;
         }
 
         //Class extent 
         private static List<Customer> _customers = new List<Customer>();
         public static IReadOnlyList<Customer> Customers => _customers.AsReadOnly();
 
-        private void AddCustomer(Customer customer)
+        private static void AddCustomer(Customer customer)
         {
             if (customer == null)
                 throw new ArgumentException("Actor cannot be null");
@@ -82,38 +36,28 @@ namespace CinemaManagementSystem
             _customers.Clear();
         }
 
+        
         //  Constructors 
         public Customer() { }  
 
        
-        public Customer(string name, string surname, DateTime birthDate)
+        public Customer(string name, string surname, GenderEnum gender, DateTime birthDate)
+            : base(name, surname, gender, birthDate)
         {
-
-            Name = name;
-            Surname = surname;
-            DateOfBirth = birthDate;
-
             AddCustomer(this);
         }
-
-        //  Methods 
-        public override string ToString()
-        {
-            return $"{Name} {Surname}, Age: {Age}";
-        }
-        
         
         //Order association
         [XmlIgnore]
         private Dictionary<DateTime, Order> _orders = new();
         [XmlIgnore]
         public IReadOnlyDictionary<DateTime, Order> Orders => _orders.AsReadOnly();
-
-
+        
         internal void AddOrderInternal(Order order)
         { 
             if (order == null) 
                 throw new ArgumentNullException(nameof(order));
+            
             if (_orders.ContainsKey(order.DateTimeOfCreation)) 
                 throw new DuplicateException( order, this);
 
@@ -129,6 +73,87 @@ namespace CinemaManagementSystem
                 throw new ExistenceException(order, this);
             
             _orders.Remove(order.DateTimeOfCreation);
+        }
+        //
+        
+        //Qualified Association: Customer - Stampcard
+
+        private Dictionary<DateTime, Stampcard> _stampcards = new Dictionary<DateTime, Stampcard>();
+        public IReadOnlyDictionary<DateTime, Stampcard> Stampcards => _stampcards;
+        
+        public bool HasActiveStampcard()
+        {
+            foreach (var keyValuePair in _stampcards)
+            {
+                if(keyValuePair.Value.Status == StampCardStatus.Active || keyValuePair.Value.Status == StampCardStatus.ReadyForFreeMovie)
+                    return true;
+            }
+            
+            return false;
+        }
+
+        internal void SetStampcardInternal(Stampcard stampcard)
+        {
+            if (stampcard == null) 
+                throw new ArgumentNullException(nameof(stampcard));
+            
+
+            _stampcards.Add(stampcard.DateOfPurchase, stampcard);
+        }
+        
+        internal void RemoveStampcardInternal(Stampcard card)
+        {
+            if (card == null)
+                throw new ArgumentNullException(nameof(card));
+
+            DateTime key = card.DateOfPurchase.Date;
+
+            if (!_stampcards.ContainsKey(key))
+                throw new ExistenceException(card, this);
+            
+            _stampcards.Remove(key);
+            
+        }
+        //
+        
+        
+        //  Methods 
+        public override string ToString()
+        {
+            if (Cards == null || Cards.Count == 0)
+                return base.ToString();
+                
+            string str =  base.ToString() + $"\nCards: \n";
+
+            foreach (var card in Cards)
+            {
+                str += $"{card}\n";
+            }
+            
+            return str;
+        }
+
+        public void AddNewCard(CardInfo cardInfo)
+        {
+            if (cardInfo == null)
+                throw new ArgumentException("Card cannot be null");
+
+            Cards ??= new HashSet<CardInfo>();
+            
+            if(!Cards.Add(cardInfo))
+                throw new DuplicateException(cardInfo, this );
+            
+        }
+
+        public void RemoveCard(string cardNumber, string PINcode)
+        {
+            if(cardNumber == null)
+                throw new ArgumentException("Card cannot be null");
+
+            if (Cards?.FirstOrDefault(c => c.Number == cardNumber && c.PINcode == PINcode) == null)
+                throw new ExistenceException($"Card with {cardNumber}");
+            
+            Cards.RemoveWhere(c => c.Number == cardNumber);
         }
 
         public void CreateOrder(Screening screening, Seat seat)
@@ -146,6 +171,11 @@ namespace CinemaManagementSystem
             if (!Orders.ContainsKey(dateTimeOfCreation))
                 throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
             
+            Order order = Orders[dateTimeOfCreation];
+            
+            if (order.DateOfPurchase != null)
+                throw new OrderException(order, "modified");
+            
             Orders[dateTimeOfCreation].AddTicket(screening, seat);
         }
 
@@ -154,6 +184,11 @@ namespace CinemaManagementSystem
             if (!Orders.ContainsKey(dateTimeOfCreation))
                 throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
             
+            Order order = Orders[dateTimeOfCreation];
+            
+            if (order.DateOfPurchase != null)
+                throw new OrderException(order, "modified");
+            
             Orders[dateTimeOfCreation].RemoveTicket(screening, seat);
         }
 
@@ -161,6 +196,14 @@ namespace CinemaManagementSystem
         {
             if (!Orders.ContainsKey(dateTimeOfCreation))
                 throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
+            
+            Order order = Orders[dateTimeOfCreation];
+            
+            if (order.DateOfPurchase != null)
+                throw new OrderException(order, "payed");
+            
+            if(Cards == null || !Cards.Contains(cardInfo))
+                throw new ExistenceException(cardInfo, this);
             
             Orders[dateTimeOfCreation].DateOfPurchase = DateTime.Now.Date + DateTime.Now.TimeOfDay;
             Orders[dateTimeOfCreation].cardInfo = cardInfo;
@@ -172,47 +215,35 @@ namespace CinemaManagementSystem
                 throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
 
             if (Orders[dateTimeOfCreation].DateOfPurchase != null)
-                throw new CancelOrderException(Orders[dateTimeOfCreation]);
+                throw new OrderException(Orders[dateTimeOfCreation], "cancelled");
             
             Orders[dateTimeOfCreation].Cancel();
         }
 
-        public void ApplyStampCardToOrder(Order order)
+        public void ApplyStampCardToOrder(DateTime dateTimeOfCreation)
         {
-            if (order == null)
-                throw new ArgumentNullException(nameof(order));
-            
             Stampcard stamp = _stampcards.FirstOrDefault(s => s.Value.Status == StampCardStatus.Active).Value;
             
             if(stamp == null)
-                throw new StampException(this, "doesn't have active stampcard");
+                throw new StampException(this, " does not contain active stampcard");
             
-            if(!_orders.ContainsKey(order.DateTimeOfCreation))
-                throw new ExistenceException(order, this);
+            if(!_orders.ContainsKey(dateTimeOfCreation))
+                throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
             
+            Order order = Orders[dateTimeOfCreation];
             if(order.DateOfPurchase != null)
                 throw new StampException(stamp, order);
             
             order.ApplyStampCard(stamp);
-
         }
 
-        //Qualified Association: Customer - Stampcard
-
-        private Dictionary<DateTime, Stampcard> _stampcards = new Dictionary<DateTime, Stampcard>();
-        public IReadOnlyDictionary<DateTime, Stampcard> Stampcards => _stampcards;
-        
-        public bool HasActiveStampcard()
+        public int CheckNumberOfStamps(DateTime dateofPurchase)
         {
-            foreach (var keyValuePair in _stampcards)
-            {
-                if(keyValuePair.Value.Status == StampCardStatus.Active)
-                    return true;
-            }
+            if(!_stampcards.ContainsKey(dateofPurchase))
+                throw new ExistenceException($"Stamp card with date of purchase {dateofPurchase}");
             
-            return false;
+            return _stampcards[dateofPurchase].NumberOfStamps;
         }
-
         
         public Stampcard RequestNewStampcard()
         {
@@ -222,32 +253,6 @@ namespace CinemaManagementSystem
             var stamp = Stampcard.CreateStampcard(this);
             
             return stamp;
-            
-        }
-
-        internal void SetStampcardInternal(Stampcard stampcard)
-        {
-            if (stampcard == null) 
-                throw new ArgumentNullException(nameof(stampcard));
-            
-
-            _stampcards.Add(stampcard.DateOfPurchase, stampcard);
-        }
-
-       
-        
-        
-        internal void RemoveStampcardInternal(Stampcard card)
-        {
-            if (card == null)
-                throw new ArgumentNullException(nameof(card));
-
-            DateTime key = card.DateOfPurchase.Date;
-
-            if (!_stampcards.ContainsKey(key))
-                throw new ExistenceException(card, this);
-            
-            _stampcards.Remove(key);
             
         }
         

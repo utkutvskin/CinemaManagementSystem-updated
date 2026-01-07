@@ -1,3 +1,5 @@
+using CinemaManagementSystem.Area;
+
 namespace CinemaManagementSystem.Exceptions;
 
 public class OverlapsException(Hall hall, DateTime date, TimeSpan hour)

@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
 
-namespace CinemaManagementSystem;
+namespace CinemaManagementSystem.Area;
 
 [Serializable]
 public abstract class CleanableArea
@@ -35,6 +32,23 @@ public abstract class CleanableArea
     }
     
     [XmlIgnore]
+    public bool IsNeedToBeCleaned
+    {
+        get
+        {
+            if (_cleanerAssignments.Count == 0)
+            {
+                return true;
+            }
+
+            DateTime lastCleaning = _cleanerAssignments
+                .Max(a => a.CleaningDateTime);
+
+            return DateTime.Now - lastCleaning > PeriodBetweenCleanings;
+        }
+    }
+    
+    [XmlIgnore]
     private static readonly List<CleanableArea> _areas = new();
     [XmlIgnore]
     public static IReadOnlyList<CleanableArea> Areas => _areas.AsReadOnly();
@@ -53,32 +67,14 @@ public abstract class CleanableArea
 
     internal void AddCleanerAssignmentInternal(CleanerAssignment assignment)
     {
-        if (assignment == null) throw new ArgumentException("assignment cannot be null");
         _cleanerAssignments.Add(assignment);
     }
 
     internal void RemoveCleanerAssignmentInternal(CleanerAssignment assignment)
     {
-        if (assignment == null) throw new ArgumentException("assignment cannot be null");
         _cleanerAssignments.Remove(assignment);
     }
-
-    [XmlIgnore]
-    public bool IsNeedToBeCleaned
-    {
-        get
-        {
-            if (_cleanerAssignments.Count == 0)
-            {
-                return true;
-            }
-
-            DateTime lastCleaning = _cleanerAssignments
-                .Max(a => a.CleaningDateTime);
-
-            return DateTime.Now - lastCleaning > PeriodBetweenCleanings;
-        }
-    }
+    
 
 
     // methods

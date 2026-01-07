@@ -5,20 +5,59 @@ namespace CinemaManagementSystem.Items
     [Serializable]
     public abstract class Item
     {
-        // Base class for sellable items
-        public string Name { get; protected set; }
-        public double Price { get; protected set; }
+        //attributes
+        private string _name;
+        private double _price;
+        private int _availableQuantity;
 
-        protected Item(string name, double price)
+        public string Name
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name cannot be empty.");
+            get => _name;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("Name cannot be empty.");
+                _name = value;
+            }
+        }
 
-            if (price <= 0)
-                throw new ArgumentException("Price must be positive.");
+        public double Price
+        {
+            get => _price;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Price must be positive.");
+                _price = value;
+            }
+        }
 
+        public int AvailableQuantity
+        {
+            get => _availableQuantity;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Quantity must be positive.");
+                _availableQuantity = value;
+            }
+        }
+
+        protected Item(string name, double price, int availableQuantity)
+        {
             Name = name;
             Price = price;
+            AvailableQuantity = availableQuantity;
+        }
+        
+        protected void AddQuantity(int quantity)
+        {
+            AvailableQuantity += quantity;
+        }
+
+        protected void SellItem()
+        {
+            AvailableQuantity -= 1;
         }
     }
 }

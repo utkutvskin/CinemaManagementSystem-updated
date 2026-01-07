@@ -1,33 +1,60 @@
-using System;
-using System.Collections. Generic;
 using System.Xml.Serialization;
-using System.IO;
-using System.Xml;
-using CinemaManagementSystem.ContractTypeForEmployee;
 using CinemaManagementSystem.Employees;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
+using CinemaManagementSystem.Person.ContractType;
+using CinemaManagementSystem.Person.Roles;
 
-namespace CinemaManagementSystem
+namespace CinemaManagementSystem.Person
 {
     [Serializable]
-    public class Employee : IExtent<Employee>
+    public class Employee : Person, IExtent<Employee>
     {
-        [XmlIgnore]
-        private static double _minSalary = 3000;
-        
         //Attributes 
-        private string _name;
-        private string _surname;
-        private DateTime _birthDate;
         private DateTime _startDate;
         private DateTime? _endDate;
-        private double _salary;
-
+        private Role _role;
+        
+        public DateTime StartDate
+        {
+            get => _startDate;
+            set
+            {
+                if(value > DateTime.Now )
+                    throw new ArgumentException("Start date cannot be greater than today.");
+                _startDate = value;
+            }
+        }
+        public DateTime? EndDate
+        {
+            get => _endDate;
+            set
+            {
+                if(value > DateTime.Now || value < StartDate)
+                    throw new ArgumentException("End date cannot be greater than today or less than start date.");
+                _endDate = value;
+            }
+        }
+        public Role Role {
+            get => _role;
+            set => _role = value;
+        }
+        
         [XmlIgnore]
         private FullTimeContract? _fullTime;
         [XmlIgnore]
         public FullTimeContract? FullTime => _fullTime;
+        
+        [XmlIgnore]
+        private PartTimeContract? _partTime;
+        [XmlIgnore]
+        public PartTimeContract? PartTime => _partTime;
+        
+        [XmlIgnore]
+        private InternContract? _intern;
+        [XmlIgnore]
+        public InternContract? Intern => _intern;
 
         private bool isFullTime => _fullTime != null;
         private bool isPartTime => _partTime != null;
@@ -43,8 +70,7 @@ namespace CinemaManagementSystem
             
             _fullTime = fullTime;
         }
-
-        public void ChangeToFullTime()
+        public void ChangeToFullTime(double salary )
         {
             if(isFullTime)
                 throw new InvalidOperationException("It has already full time");
@@ -60,13 +86,8 @@ namespace CinemaManagementSystem
                 _intern = null;
             }
 
-            _fullTime = new FullTimeContract(this);
+            _fullTime = new FullTimeContract(this, salary);
         }
-        
-        [XmlIgnore]
-        private PartTimeContract? _partTime;
-        [XmlIgnore]
-        public PartTimeContract? PartTime => _partTime;
 
         internal void SetPartTime(PartTimeContract partTime)
         {
@@ -78,8 +99,7 @@ namespace CinemaManagementSystem
 
             _partTime = partTime;
         }
-        
-        public void ChangeToPartTime(int hoursPerWeek)
+        public void ChangeToPartTime(double hourlyRate)
         {
             if(isPartTime)
                 throw new InvalidOperationException("It has already part time");
@@ -95,13 +115,8 @@ namespace CinemaManagementSystem
                 _intern = null;
             }
 
-            _partTime = new PartTimeContract(hoursPerWeek, this);
+            _partTime = new PartTimeContract(this, hourlyRate);
         }
-        
-        [XmlIgnore]
-        private InternContract? _intern;
-        [XmlIgnore]
-        public InternContract? Intern => _intern;
 
         internal void SetIntern(InternContract intern)
         {
@@ -112,7 +127,7 @@ namespace CinemaManagementSystem
 
             _intern = intern;
         }
-        public void ChangeToIntern(string universityName, int duration)
+        public void ChangeToIntern(string universityName, double? dailySalary = null)
         {
             if(isIntern)
                 throw new InvalidOperationException("It has already intern");
@@ -128,103 +143,88 @@ namespace CinemaManagementSystem
                 _partTime = null;
             }
 
-            _intern = new InternContract(universityName, duration, this);
-        }
-
-        public string Name
-        {
-            get => _name;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Name cannot be empty.");
-                _name = value;
-            }
+            _intern = new InternContract(this, universityName, dailySalary);
         }
         
-        public string Surname
-        {
-            get => _surname;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Surname cannot be empty.");
-                _surname = value;
-            }
-        }
-
-        public DateTime BirthDate
-        {
-            get => _birthDate;
-            set
-            {
-                if(value > DateTime.Now. AddYears(-16)) 
-                    throw new ArgumentException("You must be older than 16 years old"); 
-                _birthDate = value;
-                
-            }
-        }
-
-        public DateTime StartDate
-        {
-            get => _startDate;
-            set
-            {
-                if(value > DateTime.Now )
-                    throw new ArgumentException("Start date cannot be greater than today.");
-                _startDate = value;
-            }
-        }
-
-        public DateTime? EndDate
-        {
-            get => _endDate;
-            set
-            {
-                if(value > DateTime.Now || value < StartDate)
-                    throw new ArgumentException("End date cannot be greater than today or less than start date.");
-                _endDate = value;
-            }
-        }
-
-        public double Salary
-        {
-            get => _salary;
-            set
-            {
-                if(value < _minSalary)
-                    throw new ArgumentException("Salary cannot be less than minimum salary.");
-                _salary = value;
-            }
-        }
-
-        //  Derived Attributes 
+        //Reflex Association
         [XmlIgnore]
-        public int Age
-        {
-            get
-            {
-                int age = DateTime.Now.Year - BirthDate.Year;
-                if (DateTime.Now. DayOfYear < BirthDate. DayOfYear)
-                    age--;
-                return age;
-            }
-        }
-
+        private HashSet<Employee>? _previousRoles = new HashSet<Employee>();
         [XmlIgnore]
-        public int YearsOfService
-        {
-            get
-            {
-                var end = EndDate ?? DateTime.Now;
-                int years = end.Year - StartDate.Year;
-                if (end.DayOfYear < StartDate.DayOfYear)
-                    years--;
-                return years;
-            }
-        }
+        public IReadOnlySet<Employee>? PreviousRoles => _previousRoles;
         
+        [XmlIgnore]
+        private Employee? _futureRole;
+        [XmlIgnore]
+        public Employee? FutureRole => _futureRole;
 
+        public void ChangeRoleToReceptionist(int deskNumber)
+        {
+            if(Role == Role.Receptionist)
+                throw new RoleException(Role.Receptionist);
+            
+            Receptionist rec = new Receptionist(Name, Surname, BirthDate, Gender, deskNumber);
+            EndDate = DateTime.Now;
+
+            ChangeRole(rec);
+        }
+        public void ChangeRoleToManager()
+        {
+            if(Role == Role.Manager)
+                throw new RoleException(Role.Manager);
+            
+            Manager man = new Manager(Name, Surname, BirthDate, Gender);
+            EndDate = DateTime.Now;
+
+            ChangeRole(man);
+        }
+        public void ChangeRoleToBuffetSeller()
+        {
+            if(Role == Role.BuffetSeller)
+                throw new RoleException(Role.BuffetSeller);
+            
+            BuffetSeller bs = new BuffetSeller(Name, Surname, BirthDate, Gender);
+            EndDate = DateTime.Now;
+
+            ChangeRole(bs);
+        }
+        public void ChangeRoleToCleaner(CleaningTypeEnum type)
+        {
+            if(Role == Role.Cleaner)
+                throw new RoleException(Role.Cleaner);
+            
+            Cleaner cl = new Cleaner(Name, Surname, BirthDate, Gender, type);
+            EndDate = DateTime.Now;
+
+            ChangeRole(cl);
+        }
+        public void ChangeRoleToDisplayer( )
+        {
+            if(Role == Role.Displayer)
+                throw new RoleException(Role.Displayer);
+            
+            Displayer ds = new Displayer(Name, Surname, BirthDate, Gender);
+            EndDate = DateTime.Now;
+
+            ChangeRole(ds);
+        }
+
+        private void ChangeRole(Employee empl)
+        {
+            empl._previousRoles = new HashSet<Employee>();
+
+            if (_previousRoles != null)
+            {
+                foreach (var employee in _previousRoles)
+                {
+                    empl._previousRoles.Add(employee);
+                    employee._futureRole = empl;
+                }
+                _previousRoles.Clear();
+            }
+            
+            _futureRole = empl;
+            empl._previousRoles.Add(this);
+        }
         
         // Class extent 
         private static List<Employee> _employees = new List<Employee>();
@@ -238,35 +238,23 @@ namespace CinemaManagementSystem
             _employees.Add(employee);
         }
         
-        
-        public static void ClearAllEmployees()
-        {
-            _employees.Clear();
-        }
-
-      
-
         //  Constructors 
         public Employee() { } 
 
-        public Employee(string name, string surname, DateTime birthDate, DateTime startDate, double salary, DateTime? endDate = null)
+        public Employee(string name, string surname, DateTime birthDate, GenderEnum gender, Role role)
+            :base(name, surname, gender, birthDate)
         {
-
-            Name = name;
-            Surname = surname;
-            BirthDate = birthDate;
-            StartDate = startDate;
-            EndDate = endDate;
-            Salary = salary;
-
+            StartDate = DateTime.Now;
+            Role = role;
+            
             AddEmployee(this);
         }
-
+        
         //  Methods 
         public override string ToString()
         {
-            string end = EndDate. HasValue ? EndDate.Value. ToShortDateString() : "Present";
-            return $"{Name} {Surname}, Age:  {Age}, Salary: {Salary}€, Started: {StartDate: dd/MM/yyyy}, End: {end}, Years of Service: {YearsOfService}";
+            string end = EndDate. HasValue ? EndDate.Value.ToShortDateString() : "Present";
+            return $"{Name} {Surname}, Age:  {Age}, Started: {StartDate: dd/MM/yyyy}, End: {end}";
         }
 
         //  Persistence 

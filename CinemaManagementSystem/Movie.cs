@@ -11,6 +11,7 @@ using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
+using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem
 {
@@ -100,69 +101,6 @@ namespace CinemaManagementSystem
                 _price = value;
             }
         }
-        
-        
-        
-        //Basic association Actor
-        [XmlIgnore]
-        private readonly HashSet<Actor> _actors = new HashSet<Actor>();
-
-        [XmlIgnore]
-        public IReadOnlyCollection<Actor> Actors => _actors;
-
-
-        //method for adding the Actor to this Movie (from movie side)
-        public void AddActor(Actor actor)
-        {
-            if (actor == null)
-                throw new ArgumentException("Actor cannot be null.");
-            
-            //check if actor is not already added to this movie 
-            if (_actors.Contains(actor))
-                return; //if it is added, immediately exit the method to avoid duplicates and recursion
-
-            _actors.Add(actor); 
-
-            actor.AddMovie(this); //add this movie to the actor
-        }
-
-        //method for removing Actor from this movie (from movie side)
-        public void RemoveActor(Actor actor)
-        {
-            if (actor == null)
-                throw new ArgumentException("Actor cannot be null.");
-            
-            //check if actor is added to this movie
-            if (!_actors.Contains(actor))
-                return; //if it is not added, immediately exit the method as it means that we've already removed this actor 
-            
-            //check if it is not the last actor because movie must have at least one actor
-            if (_actors.Count == 1)
-                throw new MultiplicityException();
-        
-            _actors.Remove(actor);
-        
-            actor.RemoveMovie(this); // remove this movie from actor
-        }
-
-        //this method is used if we want to delete movie, as we check for multiplicity in simple method removeMovie, we can't delete last actor
-        internal void RemoveActorIgnoreMultiplicity(Actor actor)
-        {
-            if (actor == null)
-                throw new ArgumentException("Actor cannot be null.");
-
-            //check if actor is added to this movie
-            if (!_actors.Contains(actor))
-                return; //if it is not added, immediately exit the method as it means that we've already removed this actor 
-        
-            _actors.Remove(actor);
-        
-            actor.RemoveMovieIgnoreMultiplicity(this); // remove this movie from actor
-        }
-        
-        //
-        
-        
         
         
         //Attribute association Movie - Hall 
@@ -306,13 +244,6 @@ namespace CinemaManagementSystem
         public void Delete()
         {
             
-            foreach (var actor in new List<Actor>(_actors))
-            {
-                actor.RemoveMovieIgnoreMultiplicity(this);
-            }
-            _actors.Clear();
-
-            
             foreach (var screening in new List<Screening>(_screenings))
             {
                 screening.Cancel();
@@ -355,20 +286,6 @@ namespace CinemaManagementSystem
             AddMovie(this);
             
         }
-        
-        public Movie(string title, List<string> directors, List<GenreEnum> genres, ScreeningEnum screeningType, 
-            int duration, DateTime releaseDate, double price, List<Actor> actors)
-        :this(title, directors, genres, screeningType, duration, releaseDate, price)
-        {
-
-            foreach (var actor in actors)
-            {
-                AddActor(actor);
-            }
-        }
-
-      
-
         
         
         public override string ToString()

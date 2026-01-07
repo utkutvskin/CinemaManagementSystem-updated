@@ -1,9 +1,9 @@
-using System.Reflection.Metadata;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 
-namespace CinemaManagementSystem.Employees
+namespace CinemaManagementSystem.Person.Roles
 {
     [Serializable]
     public class Receptionist : Employee
@@ -23,14 +23,8 @@ namespace CinemaManagementSystem.Employees
 
         public Receptionist() { }
 
-        public Receptionist(int deskNumber)
-        {
-            DeskNumber = deskNumber;
-        }
-
-        public Receptionist(string name, string surname, DateTime birthDate,
-            DateTime startDate, double salary, int deskNumber)
-            : base(name, surname, birthDate, startDate, salary)
+        public Receptionist(string name, string surname, DateTime birthDate, GenderEnum gender, int deskNumber)
+            : base(name, surname, birthDate, gender, Role.Receptionist)
         {
             DeskNumber = deskNumber;
         }
@@ -112,20 +106,18 @@ namespace CinemaManagementSystem.Employees
                 throw new ExistenceException($"Order with date of purchase {dateTimeOfCreation}");
 
             if (Orders[dateTimeOfCreation].DateOfPurchase != null)
-                throw new CancelOrderException(Orders[dateTimeOfCreation]);
+                throw new OrderException(Orders[dateTimeOfCreation], "canceled");
             
             Orders[dateTimeOfCreation].Cancel();
         }
 
-        public void ApplyCustomerStampCardToOrder(Order order, Customer customer)
+        public void ApplyCustomerStampCardToOrder(DateTime dateTimeOfCreation, Customer customer)
         {
-            if(order == null)
-                throw new ArgumentNullException(nameof(order));
             
             if(customer == null)
                 throw new ArgumentNullException(nameof(customer));
             
-            customer.ApplyStampCardToOrder(order);
+            customer.ApplyStampCardToOrder(dateTimeOfCreation);
         }
     }
 }

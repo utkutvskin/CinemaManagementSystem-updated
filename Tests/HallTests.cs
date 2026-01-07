@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using CinemaManagementSystem;
+using CinemaManagementSystem.Area;
 
 namespace CinemaManagementSystem.Tests
 {

@@ -60,7 +60,7 @@ namespace CinemaManagementSystem
                 _pinCode = value;
             }
         }
-
+        
         //Constructors
         public CardInfo() { } 
 

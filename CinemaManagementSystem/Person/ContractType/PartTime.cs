@@ -1,25 +1,35 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Exceptions;
+using CinemaManagementSystem.Person;
 
-namespace CinemaManagementSystem.ContractTypeForEmployee
+namespace CinemaManagementSystem.Person.ContractType
 {
     [Serializable]
     public class PartTimeContract 
     {
-        private int _hoursPerWeek;
-
-        public int HoursPerWeek
+        private static double MinHourlyRate = 27;
+        
+        private double _hourlyRate;
+        
+        public double HourlyRate
         {
-            get => _hoursPerWeek;
+            get => _hourlyRate;
             set
             {
-                if (value <= 0 || value > MaxHours * 5)
-                    throw new ArgumentException("Part-time employee must work between 1 and 30 hours.");
-                _hoursPerWeek = value;
+                if(value < MinHourlyRate)
+                    throw new ArgumentException("HourlyRate cannot be less than MinHourlyRate");
+                _hourlyRate = value;
             }
         }
         
-        private static int MaxHours = 6;
+        
+        //Derived
+        [XmlIgnore]
+        public double HoursPerMonth => HourlyRate * 1;
+        
+        [XmlIgnore]
+        public double SalaryPerMonth => HourlyRate * HoursPerMonth;
+        
         
         [XmlIgnore]
         private Employee _employee;
@@ -58,19 +68,18 @@ namespace CinemaManagementSystem.ContractTypeForEmployee
         
         public PartTimeContract() { }
 
-        public PartTimeContract(int hoursPerWeek, Employee employee)
+        public PartTimeContract(Employee employee, double hourlyRate)
         {
-            HoursPerWeek = hoursPerWeek;
+            HourlyRate = hourlyRate;
             
             SetEmployee(employee);
-            
             AddContract(this);
         }
 
         public override string ToString()
         {
             return base.ToString() + 
-                   $", Part-Time ({HoursPerWeek}h/week)";
+                   $", Part-Time (Hourly rate: {HourlyRate}, Salary per month: {SalaryPerMonth}, Hours per month: {HoursPerMonth})";
         }
 
     }

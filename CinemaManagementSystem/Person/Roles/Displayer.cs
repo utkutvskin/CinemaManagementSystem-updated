@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using CinemaManagementSystem.Area;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem
 {
@@ -57,8 +60,8 @@ namespace CinemaManagementSystem
         // Constructors
         public Displayer() { }
 
-        public Displayer(string name, string surname, DateTime birthDate, DateTime startDate, double salary)
-            : base(name, surname, birthDate, startDate, salary)
+        public Displayer(string name, string surname, DateTime birthDate, GenderEnum gender)
+            : base(name, surname, birthDate, gender, Role.Displayer)
         {
             _numberOfScreensManaged = 0;
         }

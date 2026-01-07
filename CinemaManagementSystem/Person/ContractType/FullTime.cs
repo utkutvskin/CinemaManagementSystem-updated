@@ -1,14 +1,32 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Exceptions;
 
-namespace CinemaManagementSystem.ContractTypeForEmployee
+namespace CinemaManagementSystem.Person.ContractType
 {
     [Serializable]
     public class FullTimeContract
     {
-        private readonly Dictionary<DateTime, double> _bonuses = new();
+        private static double MinSalary = 3000;
+        
+        private Dictionary<DateTime, double> _bonuses;
+        private double _salary;
+        
+        public Dictionary<DateTime, double> Bonuses
+        {
+            get => _bonuses;
+            set => _bonuses = value;
+        }
 
-        public IReadOnlyDictionary<DateTime, double> Bonuses => _bonuses;
+        public double Salary
+        {
+            get => _salary;
+            set
+            {
+                if(value < MinSalary)
+                    throw new ArgumentException("Salary cannot be less than MinSalary");
+                _salary = value;
+            }
+        }
         
         [XmlIgnore]
         private Employee _employee;
@@ -45,15 +63,20 @@ namespace CinemaManagementSystem.ContractTypeForEmployee
             _contracts.Remove(this);
         }
         
-        public FullTimeContract(Employee employee)
+        public FullTimeContract(Employee employee, double salary)
         {
-            SetEmployee(employee);
+            Salary = salary;
+            Bonuses = new Dictionary<DateTime, double>();
             
+            SetEmployee(employee);
             AddContract(this);
         }
 
         public void AddBonus(double bonus)
         {
+            if(bonus <= 0)
+                throw new ArgumentException("Bonus cannot be less than 0");
+            
             _bonuses.Add(DateTime.Now, bonus);
         }
 

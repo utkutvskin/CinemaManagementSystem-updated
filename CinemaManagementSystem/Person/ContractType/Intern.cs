@@ -1,13 +1,15 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Exceptions;
+using CinemaManagementSystem.Person;
 
-namespace CinemaManagementSystem.ContractTypeForEmployee
+namespace CinemaManagementSystem.Person.ContractType
 {
     [Serializable]
     public class InternContract 
     {
+        
         private string _universityName;
-        private int _duration;
+        private double? _dailySalary;
 
         public string UniversityName
         {
@@ -19,18 +21,17 @@ namespace CinemaManagementSystem.ContractTypeForEmployee
                 _universityName = value;
             }
         }
-
-        public int Duration
+        public double? DailySalary
         {
-            get => _duration;
+            get => _dailySalary;
             set
             {
-                if(value < 0)
-                    throw new ArgumentException("Duration cannot be negative");
-                _duration = value;
+                if(value <= 0)
+                    throw new ArgumentException("HourlyRate cannot be less than 0");
+                _dailySalary = value;
             }
         }
-
+        
         [XmlIgnore]
         private Employee _employee;
         [XmlIgnore]
@@ -67,20 +68,19 @@ namespace CinemaManagementSystem.ContractTypeForEmployee
         }
         
         
-        public InternContract(string universityName, int duration, Employee employee)
+        public InternContract(Employee employee, string universityName, double? dailySalary = null)
         {
-            _universityName = universityName;
-            _duration = duration;
+            UniversityName = universityName;
+            DailySalary = dailySalary;
             
             SetEmployee(employee);
-            
             AddContract(this);
         }
 
         public override string ToString()
         {
             return base.ToString() + 
-                   $", Intern (University {UniversityName}, Duration: {Duration})";
+                   $", Intern (University {UniversityName} )";
         }
     }
 }

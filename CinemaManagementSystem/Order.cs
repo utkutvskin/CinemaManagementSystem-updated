@@ -8,6 +8,8 @@ using CinemaManagementSystem.Employees;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
+using CinemaManagementSystem.Person;
+using CinemaManagementSystem.Person.Roles;
 
 namespace CinemaManagementSystem
 {

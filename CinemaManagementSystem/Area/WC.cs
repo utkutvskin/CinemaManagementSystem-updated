@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
-namespace CinemaManagementSystem;
+namespace CinemaManagementSystem.Area;
 
 [Serializable]
 public class WC :CleanableArea, IExtent<WC>

@@ -1,5 +1,6 @@
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
+using CinemaManagementSystem.Person;
 using NUnit.Framework;
 
 namespace CinemaManagementSystem.Tests.AssociationTests;

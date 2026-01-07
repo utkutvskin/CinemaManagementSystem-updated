@@ -1,5 +1,7 @@
 using System;
 using System. Xml.Serialization;
+using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem
 {
@@ -23,9 +25,8 @@ namespace CinemaManagementSystem
 
         public BuffetSeller() { }
 
-        public BuffetSeller(string name, string surname, DateTime birthDate,
-            DateTime startDate, double salary)
-            : base(name, surname, birthDate, startDate, salary)
+        public BuffetSeller(string name, string surname, DateTime birthDate, GenderEnum gender)
+            : base(name, surname, birthDate, gender, Role.BuffetSeller)
         {
             TotalSales = 0;
         }

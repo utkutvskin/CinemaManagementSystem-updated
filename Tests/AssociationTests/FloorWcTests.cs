@@ -1,3 +1,4 @@
+using CinemaManagementSystem.Area;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
 using NUnit.Framework;

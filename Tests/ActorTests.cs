@@ -3,6 +3,7 @@ using System.IO;
 using NUnit.Framework;
 using CinemaManagementSystem;
 using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem.Tests
 {

@@ -1,4 +1,6 @@
+using CinemaManagementSystem.Area;
 using CinemaManagementSystem.AssociationClasses;
+using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem.PersistenceForAllClasses
 {
@@ -6,7 +8,6 @@ namespace CinemaManagementSystem.PersistenceForAllClasses
     public class Extent
     {
         public List<Movie> Movies { get; set; } = new();
-        public List<Actor> Actors { get; set; } = new();
         public List<Customer> Customers { get; set; } = new();
         public List<Employee> Employees { get; set; } = new();
         public List<Hall> Halls { get; set; } = new();
@@ -24,7 +25,6 @@ namespace CinemaManagementSystem.PersistenceForAllClasses
             var result = new Extent();
  
             result.Movies = new Movie().GetExtent().ToList();
-            result.Actors = new Actor().GetExtent().ToList();
             result.Customers = new Customer().GetExtent().ToList();
             result.Employees = new Employee().GetExtent().ToList();
             result.Halls = new Hall().GetExtent().ToList();
@@ -43,7 +43,6 @@ namespace CinemaManagementSystem.PersistenceForAllClasses
         public void Apply()
         {
             new Movie().ReplaceExtent(Movies);
-            new Actor().ReplaceExtent(Actors);
             new Customer().ReplaceExtent(Customers);
             new Employee().ReplaceExtent(Employees);
             new Hall().ReplaceExtent(Halls);

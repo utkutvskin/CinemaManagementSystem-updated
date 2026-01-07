@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Xml.Serialization;
 using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.PersistenceForAllClasses;
 
-namespace CinemaManagementSystem
+namespace CinemaManagementSystem.Area
 {
     [Serializable]
     public class Hall : CleanableArea, IExtent<Hall>

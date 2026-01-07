@@ -1,6 +1,8 @@
 using System. Xml.Serialization;
+using CinemaManagementSystem.Area;
 using CinemaManagementSystem.AssociationClasses;
 using CinemaManagementSystem. Enums;
+using CinemaManagementSystem.Person;
 
 namespace CinemaManagementSystem.Employees
 {
@@ -54,9 +56,8 @@ namespace CinemaManagementSystem.Employees
 
         public Cleaner() { }
 
-        public Cleaner(CleaningTypeEnum cleaningType, string name, string surname, 
-            DateTime birthDate, DateTime startDate, double salary, DateTime? endDate = null) 
-            : base(name, surname, birthDate, startDate, salary, endDate)
+        public Cleaner(string name, string surname, DateTime birthDate, GenderEnum gender, CleaningTypeEnum cleaningType)
+            : base(name, surname, birthDate, gender, Role.Cleaner)
         {
             CleaningType = cleaningType;
         }
