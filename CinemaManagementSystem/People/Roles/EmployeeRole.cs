@@ -1,11 +1,12 @@
 using System.Xml.Serialization;
 using CinemaManagementSystem.Enums;
 using CinemaManagementSystem.Exceptions;
-using CinemaManagementSystem.People.ContractType;
+using CinemaManagementSystem.Enums;
+using CinemaManagementSystem.People.Contract;
 
 namespace CinemaManagementSystem.People.Roles;
 
-public class EmployeeRole
+public abstract class EmployeeRole
 {
     //Attributes 
         private DateTime _startDate;
@@ -97,7 +98,7 @@ public class EmployeeRole
 
             _partTime = partTime;
         }
-        public void ChangeToPartTime(double hourlyRate)
+        public void ChangeToPartTime(double hourlyRate, double hoursPerMonth)
         {
             if(isPartTime)
                 throw new InvalidOperationException("It has already part time");
@@ -113,13 +114,13 @@ public class EmployeeRole
                 _intern = null;
             }
 
-            _partTime = new PartTimeContract(this, hourlyRate);
+            _partTime = new PartTimeContract(this, hourlyRate, hoursPerMonth);
         }
-        public void SetPartTime(double hourlyRate)
+        public void SetPartTime(double hourlyRate, double hoursPerMonth)
         {
             if(isFullTime || isPartTime || isIntern)
                 throw new InvalidOperationException("There is another contract type");
-            _partTime = new PartTimeContract(this, hourlyRate);
+            _partTime = new PartTimeContract(this, hourlyRate, hoursPerMonth);
         }
 
         internal void SetIntern(InternContract intern)
@@ -166,8 +167,6 @@ public class EmployeeRole
                 throw new ArgumentException("Employee cannot be null");
             if(Employee != null)
                 throw new InvalidOperationException("Employee is already assigned");
-            if(employee.IsFired)
-                throw new InvalidOperationException("Employee is already fired");
 
             employee.SetRole(this);
             _employee = employee;
@@ -194,6 +193,21 @@ public class EmployeeRole
             StartDate = DateTime.Now;
             SetEmployee(employee);
             AddEmployeeRole(this);
+        }
+        //FullTime
+        public EmployeeRole(Employee employee, double salary): this(employee)
+        {
+            SetFullTime(salary);
+        }
+        //PartTime
+        public EmployeeRole(Employee employee, double hourlyRate, double hoursPerMonth): this(employee)
+        {
+            SetPartTime(hourlyRate, hoursPerMonth);
+        }
+        //Inter
+        public EmployeeRole(Employee employee, string universityName, double? salary = null): this(employee)
+        {
+            SetIntern(universityName, salary);
         }
         
         //  Methods 

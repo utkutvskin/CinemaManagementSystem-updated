@@ -61,6 +61,23 @@ namespace CinemaManagementSystem.People.Roles
             CleaningType = cleaningType;
         }
 
+        //PartTime
+        public Cleaner(CleaningTypeEnum cleaningType, Employee employee, double salary) :base(employee, salary)
+        {
+            CleaningType = cleaningType;
+        }
+        //FullTime
+        public Cleaner(CleaningTypeEnum cleaningType, Employee employee, double hourlyRate, double hoursPerMonth) 
+            :base(employee, hourlyRate, hoursPerMonth)
+        {
+            CleaningType = cleaningType;
+        }
+        //Intern
+        public Cleaner(CleaningTypeEnum cleaningType, Employee employee, string universityName, double? salary = null) 
+            :base(employee, universityName, salary)
+        {
+            CleaningType = cleaningType;
+        }
 
         // Methods
         public List<CleanableArea> GetListOfAreaThatNeedToBeCleaned()

@@ -30,6 +30,8 @@ namespace CinemaManagementSystem.People
 
         internal void SetRole(EmployeeRole role)
         {
+            if(IsFired)
+                throw new InvalidOperationException("Employee is already fired");
             if(role == null)
                 throw new ArgumentException("role cannot be null");
             if(_currentRole != null)
@@ -40,8 +42,11 @@ namespace CinemaManagementSystem.People
             _currentRole = role;
         }
 
-        private void ChangeRole()
+        private void ChangeRole() 
         {
+            if(IsFired)
+                throw new InvalidOperationException("Employee is already fired");
+            
             if (_currentRole == null)
                 throw new InvalidOperationException("Employee has no current role.");
 
@@ -55,12 +60,17 @@ namespace CinemaManagementSystem.People
         
         public EmployeeRole ChangeRoleToReceptionist(int deskNumber)
         {
+            if (_currentRole?.GetType() == typeof(Receptionist))
+                throw new InvalidOperationException("Cannot change the role to a receptionist as it is already receptionist.");
+            
             ChangeRole();
             Receptionist rec = new Receptionist(deskNumber, this);
             return rec;
         }
         public EmployeeRole ChangeRoleToManager()
         {
+            if (_currentRole?.GetType() == typeof(Manager))
+                throw new InvalidOperationException("Cannot change the role to a Manager as it is already Manager.");
             ChangeRole();
             
             Manager rec = new Manager( this);
@@ -68,6 +78,8 @@ namespace CinemaManagementSystem.People
         }
         public EmployeeRole ChangeRoleToCleaner(CleaningTypeEnum cleaningType)
         {
+            if (_currentRole?.GetType() == typeof(Cleaner))
+                throw new InvalidOperationException("Cannot change the role to a Cleaner as it is already Cleaner.");
             ChangeRole();
             
             Cleaner rec = new Cleaner(cleaningType, this);
@@ -75,6 +87,8 @@ namespace CinemaManagementSystem.People
         }
         public EmployeeRole ChangeRoleToDisplayer()
         {
+            if (_currentRole?.GetType() == typeof(Displayer))
+                throw new InvalidOperationException("Cannot change the role to a Displayer as it is already Displayer.");
             ChangeRole();
             
             Displayer rec = new Displayer( this);
@@ -82,6 +96,8 @@ namespace CinemaManagementSystem.People
         }
         public EmployeeRole ChangeRoleToBuffetSeller()
         {
+            if (_currentRole?.GetType() == typeof(BuffetSeller))
+                throw new InvalidOperationException("Cannot change the role to a BuffetSeller as it is already BuffetSeller.");
             ChangeRole();
             
             BuffetSeller rec = new BuffetSeller( this);

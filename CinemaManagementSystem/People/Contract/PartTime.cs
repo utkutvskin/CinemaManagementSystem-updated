@@ -2,14 +2,16 @@ using System.Xml.Serialization;
 using CinemaManagementSystem.Exceptions;
 using CinemaManagementSystem.People.Roles;
 
-namespace CinemaManagementSystem.People.ContractType
+namespace CinemaManagementSystem.People.Contract
 {
     [Serializable]
     public class PartTimeContract 
     {
         private static double MinHourlyRate = 27;
+        private static double MaxHourlyRate = 60;
         
         private double _hourlyRate;
+        private double _hoursPerMonth;
         
         public double HourlyRate
         {
@@ -18,14 +20,22 @@ namespace CinemaManagementSystem.People.ContractType
             {
                 if(value < MinHourlyRate)
                     throw new ArgumentException("HourlyRate cannot be less than MinHourlyRate");
+                if(value > MaxHourlyRate)
+                    throw new ArgumentException("HourlyRate cannot be bigger that  MaxHourlyRate");
                 _hourlyRate = value;
             }
         }
         
-        
-        //Derived
-        [XmlIgnore]
-        public double HoursPerMonth => 10;
+        public double HoursPerMonth
+        {
+            get => _hoursPerMonth;
+            set
+            {
+                if(value < 0)
+                    throw new ArgumentException("HoursPerMounth cannot be less than 0");
+                _hoursPerMonth = value;
+            }
+        }
         
         [XmlIgnore]
         public double SalaryPerMonth => HourlyRate * HoursPerMonth;
@@ -68,9 +78,10 @@ namespace CinemaManagementSystem.People.ContractType
         
         public PartTimeContract() { }
 
-        public PartTimeContract(EmployeeRole employee, double hourlyRate)
+        public PartTimeContract(EmployeeRole employee, double hourlyRate, double hoursPerMonth)
         {
             HourlyRate = hourlyRate;
+            HoursPerMonth = hoursPerMonth;
             
             SetEmployeeRole(employee);
             AddContract(this);

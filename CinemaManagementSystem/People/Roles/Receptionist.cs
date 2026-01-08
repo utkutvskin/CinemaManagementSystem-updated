@@ -27,6 +27,23 @@ namespace CinemaManagementSystem.People.Roles
         {
             DeskNumber = deskNumber;
         }
+        //PartTime
+        public Receptionist(int deskNumber, Employee employee, double salary) :base(employee, salary)
+        {
+            DeskNumber = deskNumber;
+        }
+        //FullTime
+        public Receptionist(int deskNumber, Employee employee, double hourlyRate, double hoursPerMonth) 
+            :base(employee, hourlyRate, hoursPerMonth)
+        {     
+            DeskNumber = deskNumber;
+        }
+        //Intern
+        public Receptionist(int deskNumber, Employee employee, string universityName, double? salary = null) 
+            :base(employee, universityName, salary)
+        {
+            DeskNumber = deskNumber;
+        }
 
         [XmlIgnore]
         private Dictionary<DateTime, Order> _orders = new();

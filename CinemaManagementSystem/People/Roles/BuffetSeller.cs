@@ -23,6 +23,23 @@ namespace CinemaManagementSystem.People.Roles
         {
             TotalSales = 0;
         }
+        //PartTime
+        public BuffetSeller(Employee employee, double salary) :base(employee, salary)
+        {
+            TotalSales = 0;
+        }
+        //FullTime
+        public BuffetSeller(Employee employee, double hourlyRate, double hoursPerMonth) 
+            :base(employee, hourlyRate, hoursPerMonth)
+        {
+            TotalSales = 0;
+        }
+        //Intern
+        public BuffetSeller(Employee employee, string universityName, double? salary = null) 
+            :base(employee, universityName, salary)
+        {
+            TotalSales = 0;
+        }
 
         public void SellItem()
         {

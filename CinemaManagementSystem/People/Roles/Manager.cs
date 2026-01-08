@@ -13,6 +13,20 @@ namespace CinemaManagementSystem.People.Roles
         {
         }
 
+        //PartTime
+        public Manager(Employee employee, double salary) :base(employee, salary)
+        {
+        }
+        //FullTime
+        public Manager(Employee employee, double hourlyRate, double hoursPerMonth) 
+            :base(employee, hourlyRate, hoursPerMonth)
+        {     
+        }
+        //Intern
+        public Manager(Employee employee, string universityName, double? salary = null) 
+            :base(employee, universityName, salary)
+        {
+        }
         public void AddManagedEmployee(Employee employee)
         {
             if (employee == null)

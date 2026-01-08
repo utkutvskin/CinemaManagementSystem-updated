@@ -63,5 +63,22 @@ namespace CinemaManagementSystem.People.Roles
             _numberOfScreensManaged = 0;
         }
 
+        //PartTime
+        public Displayer(Employee employee, double salary) :base(employee, salary)
+        {
+            _numberOfScreensManaged = 0;
+        }
+        //FullTime
+        public Displayer(Employee employee, double hourlyRate, double hoursPerMonth) 
+            :base(employee, hourlyRate, hoursPerMonth)
+        {
+            _numberOfScreensManaged = 0;        
+        }
+        //Intern
+        public Displayer(Employee employee, string universityName, double? salary = null) 
+            :base(employee, universityName, salary)
+        {
+            _numberOfScreensManaged = 0;  
+        }
     }
 }
